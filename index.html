@@ -12,15 +12,15 @@
         :root { --primary: #e63946; --secondary: #1d3557; --accent: #2ecc71; --admin: #8e44ad; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         #auth-screen { position: fixed; inset: 0; background: var(--secondary); z-index: 2000; display: flex; align-items: center; justify-content: center; color: white; }
-        .login-box { background: white; color: #333; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        .login-box { background: white; color: #333; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; padding: 15px; background: white; border-bottom: 2px solid #ddd; z-index: 100; }
         .stat-card { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--primary); }
         .stat-card h5 { margin: 0; font-size: 12px; color: #666; }
         .stat-card p { margin: 5px 0 0 0; font-weight: bold; font-size: 16px; color: var(--secondary); }
         #map { flex: 1; z-index: 1; }
-        .admin-view { position: fixed; inset: 0; background: white; z-index: 1500; display: none; padding: 20px; overflow-y: auto; }
         input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-primary:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -32,8 +32,115 @@
             <input type="text" id="resName" placeholder="Restoran Adı (Örn: baris-kebap)">
             <input type="password" id="resPass" placeholder="Şifre">
             <button class="btn-primary" onclick="login()">Giriş Yap</button>
-            <small style="color: #999">Admin girişi için: admin / 1234</small>
+            <small style="color: #999">Admin girişi için: <b>admin</b> / <b>1234</b></small>
         </div>
+    </div>
+
+    <div class="stats-bar" id="stats-panel" style="display:none;">
+        <div class="stat-card"><h5>Toplam</h5><p id="st-total">0 TL</p></div>
+        <div class="stat-card" style="border-color: #25d366"><h5>Nakit</h5><p id="st-cash">0 TL</p></div>
+        <div class="stat-card" style="border-color: #3498db"><h5>Kart</h5><p id="st-card">0 TL</p></div>
+        <div class="stat-card" style="border-color: #f39c12"><h5>Online</h5><p id="st-online">0 TL</p></div>
+        <div class="stat-card" style="border-color: #e74c3c"><h5>İptal</h5><p id="st-cancel">0</p></div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // FIREBASE CONFIG - SENİN BİLGİLERİNLE GÜNCELLENDİ
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdoBPDNNfgW8AZxpR3-pUjH_M6_7D-X_U",
+            authDomain: "wpyonsip-6bbb5.firebaseapp.com",
+            projectId: "wpyonsip-6bbb5",
+            storageBucket: "wpyonsip-6bbb5.firebasestorage.app",
+            messagingSenderId: "478685413866",
+            appId: "1:478685413866:web:86a86e92c6086e3f53831a"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentRes = "";
+        let isAdmin = false;
+        let map, markers = [];
+
+        function login() {
+            const name = document.getElementById('resName').value.trim();
+            const pass = document.getElementById('resPass').value;
+
+            if(name === "admin" && pass === "1234") {
+                isAdmin = true;
+                currentRes = "TÜM RESTORANLAR";
+            } else if(name !== "" && pass !== "") {
+                currentRes = name;
+            } else {
+                return alert("Bilgileri girin!");
+            }
+            
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('stats-panel').style.display = 'grid';
+            initApp();
+        }
+
+        function initApp() {
+            map = L.map('map').setView([39.9334, 32.8597], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            let query = db.collection("orders");
+            if(!isAdmin) query = query.where("restaurant", "==", currentRes);
+
+            query.onSnapshot(snapshot => {
+                let stats = { total: 0, cash: 0, card: 0, online: 0, cancel: 0 };
+                
+                // Temizle
+                markers.forEach(m => map.removeLayer(m));
+                markers = [];
+
+                snapshot.forEach(doc => {
+                    const o = doc.data();
+                    if(o.status === "iptal") {
+                        stats.cancel++;
+                    } else {
+                        const price = parseFloat(o.price) || 0;
+                        stats.total += price;
+                        if(o.pay === "Nakit") stats.cash += price;
+                        if(o.pay === "Kredi Kartı") stats.card += price;
+                        if(o.pay === "Online") stats.online += price;
+                    }
+                    
+                    const marker = L.marker([o.lat, o.lng]).addTo(map)
+                        .bindPopup(`<b>${o.restaurant}</b><br>Tutar: ${o.price} TL<br>Ödeme: ${o.pay}`);
+                    markers.push(marker);
+                });
+
+                document.getElementById('st-total').innerText = stats.total + " TL";
+                document.getElementById('st-cash').innerText = stats.cash + " TL";
+                document.getElementById('st-card').innerText = stats.card + " TL";
+                document.getElementById('st-online').innerText = stats.online + " TL";
+                document.getElementById('st-cancel').innerText = stats.cancel;
+            });
+
+            map.on('click', e => {
+                if(isAdmin) return alert("Admin modunda sadece izleme yapabilirsiniz.");
+                const price = prompt("Sipariş Tutarı:");
+                const pay = prompt("Ödeme Türü (Nakit / Kredi Kartı / Online):");
+                if(price && pay) {
+                    db.collection("orders").add({
+                        restaurant: currentRes,
+                        price: price,
+                        pay: pay,
+                        lat: e.latlng.lat,
+                        lng: e.latlng.lng,
+                        status: "aktif",
+                        time: new Date().getTime()
+                    }).catch(err => alert("Firestore Hatası: " + err.message));
+                }
+            });
+        }
+    </script>
+</body>
+</html>
     </div>
 
     <div class="stats-bar" id="stats-panel" style="display:none;">
