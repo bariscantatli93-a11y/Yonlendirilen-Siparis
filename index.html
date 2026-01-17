@@ -2,121 +2,138 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sipariş Takip v3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sipariş SaaS - Admin & Restoran Paneli</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #e63946; --secondary: #1d3557; --accent: #2ecc71; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #f4f7f6; }
+        :root { --primary: #e63946; --secondary: #1d3557; --accent: #2ecc71; --admin: #8e44ad; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        #auth-screen { position: fixed; inset: 0; background: var(--secondary); z-index: 2000; display: flex; align-items: center; justify-content: center; color: white; }
+        .login-box { background: white; color: #333; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; padding: 15px; background: white; border-bottom: 2px solid #ddd; z-index: 100; }
+        .stat-card { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; border-bottom: 3px solid var(--primary); }
+        .stat-card h5 { margin: 0; font-size: 12px; color: #666; }
+        .stat-card p { margin: 5px 0 0 0; font-weight: bold; font-size: 16px; color: var(--secondary); }
         #map { flex: 1; z-index: 1; }
-        #menu-btn { position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--primary); color: white; border: none; padding: 12px 15px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(230, 57, 70, 0.4); }
-        #drawer { position: fixed; left: -320px; top: 0; width: 300px; height: 100%; background: #fff; z-index: 1000; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 0 25px rgba(0,0,0,0.15); overflow-y: auto; padding: 20px; }
-        #drawer.open { left: 0; }
-        .order-card { background: #fff; border-left: 6px solid var(--primary); padding: 15px; border-radius: 10px; margin-bottom: 15px; cursor: pointer; border: 1px solid #eee; border-left-width: 6px; }
-        .form-container { display: flex; flex-direction: column; gap: 10px; min-width: 260px; padding: 10px 5px; }
-        input, select, textarea { padding: 12px; border: 1.5px solid #eee; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; }
-        .save-btn { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .wp-btn { background: #25d366; color: white; padding: 12px; border-radius: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; font-weight: bold; }
-        .bike-icon { color: var(--primary); font-size: 24px; }
+        .admin-view { position: fixed; inset: 0; background: white; z-index: 1500; display: none; padding: 20px; overflow-y: auto; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <button id="menu-btn" onclick="toggleDrawer()"><i class="fas fa-bars"></i></button>
-    <div id="drawer">
-        <h2 style="color: var(--secondary);"><i class="fas fa-motorcycle"></i> Siparişler</h2>
-        <div id="order-list"></div>
+
+    <div id="auth-screen">
+        <div class="login-box">
+            <h2 style="color: var(--primary)">Sipariş Takip SaaS</h2>
+            <p>Devam etmek için restoran adınızı girin</p>
+            <input type="text" id="resName" placeholder="Restoran Adı (Örn: baris-kebap)">
+            <input type="password" id="resPass" placeholder="Şifre">
+            <button class="btn-primary" onclick="login()">Giriş Yap</button>
+            <small style="color: #999">Admin girişi için: admin / 1234</small>
+        </div>
     </div>
+
+    <div class="stats-bar" id="stats-panel" style="display:none;">
+        <div class="stat-card"><h5>Toplam</h5><p id="st-total">0 TL</p></div>
+        <div class="stat-card" style="border-color: #25d366"><h5>Nakit</h5><p id="st-cash">0 TL</p></div>
+        <div class="stat-card" style="border-color: #3498db"><h5>Kart</h5><p id="st-card">0 TL</p></div>
+        <div class="stat-card" style="border-color: #f39c12"><h5>Online</h5><p id="st-online">0 TL</p></div>
+        <div class="stat-card" style="border-color: #e74c3c"><h5>İptal</h5><p id="st-cancel">0</p></div>
+    </div>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map = L.map('map', { zoomControl: false }).setView([39.9334, 32.8597], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // FIREBASE CONFIG (Senin görselinden kopyalandı)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdoBPDNNfgW8AZxpR3...", // Buraya görseldeki tam keyi yazabilirsin
+            authDomain: "wpyonsip-6bbb5.firebaseapp.com",
+            projectId: "wpyonsip-6bbb5",
+            storageBucket: "wpyonsip-6bbb5.firebasestorage.app",
+            messagingSenderId: "478685413866",
+            appId: "1:478685413866:web:86a86..."
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        let orders = JSON.parse(localStorage.getItem('orders')) || [];
-        let tempLatLng = null;
+        let currentRes = "";
+        let isAdmin = false;
 
-        const courierIcon = L.divIcon({
-            html: '<i class="fas fa-motorcycle bike-icon"></i>',
-            className: 'custom-bike-icon',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        });
+        function login() {
+            const name = document.getElementById('resName').value.trim();
+            const pass = document.getElementById('resPass').value;
 
-        function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); }
-
-        map.on('click', function(e) {
-            tempLatLng = e.latlng;
-            const content = `
-                <div class="form-container">
-                    <h3>Yeni Sipariş</h3>
-                    <input type="text" id="custName" placeholder="Müşteri Ad Soyad">
-                    <input type="tel" id="custPhone" placeholder="Telefon">
-                    <textarea id="orderItems" rows="4" placeholder="Ürünler (Her satıra bir tane)"></textarea>
-                    <input type="number" id="totalPrice" placeholder="Toplam Tutar">
-                    <select id="payMethod">
-                        <option value="Nakit">Nakit Ödeme</option>
-                        <option value="Online">Online Ödeme</option>
-                        <option value="Kredi Kartı">Kapıda Kredi Kartı</option>
-                    </select>
-                    <button class="save-btn" onclick="saveOrder()">Haritaya Ekle</button>
-                </div>`;
-            L.popup().setLatLng(e.latlng).setContent(content).openOn(map);
-        });
-
-        function saveOrder() {
-            const rawItems = document.getElementById('orderItems').value.trim();
-            const o = {
-                id: "SIP-" + Math.floor(1000 + Math.random() * 9000),
-                name: document.getElementById('custName').value || "İsimsiz",
-                phone: document.getElementById('custPhone').value || "-",
-                items: rawItems,
-                price: document.getElementById('totalPrice').value || "0",
-                pay: document.getElementById('payMethod').value,
-                lat: tempLatLng.lat, lng: tempLatLng.lng,
-                time: new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})
-            };
-            orders.push(o);
-            localStorage.setItem('orders', JSON.stringify(orders));
-            location.reload(); 
+            if(name === "admin" && pass === "1234") {
+                isAdmin = true;
+                currentRes = "TÜM RESTORANLAR";
+            } else if(name !== "" && pass !== "") {
+                currentRes = name;
+            } else {
+                return alert("Bilgileri girin!");
+            }
+            
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('stats-panel').style.display = 'grid';
+            initApp();
         }
 
-        function render() {
-            const list = document.getElementById('order-list');
-            orders.forEach(o => {
-                const marker = L.marker([o.lat, o.lng], { icon: courierIcon }).addTo(map);
-                const itemList = o.items.split('\n').map(item => '• ' + item.trim()).join('\n');
-                const msg = `🚨 *YENİ SİPARİŞ* #${o.id}\n\n👤 *Müşteri:* ${o.name}\n📞 *Tel:* ${o.phone}\n🛒 *Sipariş:* \n${itemList}\n\n💰 *Ödeme:* ${o.pay} (${o.price} TL)\n🕒 *Saat:* ${o.time}\n\n📍 *Konum:* https://www.google.com/maps?q=${o.lat},${o.lng}`;
+        function initApp() {
+            const map = L.map('map').setView([39.9334, 32.8597], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            // Verileri Firestore'dan Canlı Dinle
+            let query = db.collection("orders");
+            if(!isAdmin) query = query.where("restaurant", "==", currentRes);
+
+            query.onSnapshot(snapshot => {
+                let stats = { total: 0, cash: 0, card: 0, online: 0, cancel: 0 };
                 
-                marker.bindPopup(`
-                    <div style="font-size:14px; min-width:200px">
-                        <b>${o.id} - ${o.name}</b><br>
-                        <div style="margin:8px 0; padding:8px; background:#f9f9f9; border-radius:5px;">
-                            ${o.items.replace(/\n/g, '<br>')}
-                        </div>
-                        <a class="wp-btn" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank">WhatsApp'a Gönder</a>
-                        <button onclick="deleteOrder('${o.id}')" style="background:none; border:none; color:#bbb; cursor:pointer; width:100%; margin-top:10px;">Siparişi Sil</button>
-                    </div>
-                `);
-                
-                const card = document.createElement('div');
-                card.className = 'order-card';
-                card.innerHTML = `<h4>#${o.id} - ${o.name}</h4><small>${o.time} | ${o.price} TL</small>`;
-                card.onclick = () => { map.flyTo([o.lat, o.lng], 18); toggleDrawer(); };
-                list.appendChild(card);
+                snapshot.forEach(doc => {
+                    const o = doc.data();
+                    if(o.status === "iptal") {
+                        stats.cancel++;
+                    } else {
+                        const price = parseFloat(o.price) || 0;
+                        stats.total += price;
+                        if(o.pay === "Nakit") stats.cash += price;
+                        if(o.pay === "Kredi Kartı") stats.card += price;
+                        if(o.pay === "Online") stats.online += price;
+                    }
+                    
+                    // Haritaya işaretçi ekle
+                    L.marker([o.lat, o.lng]).addTo(map).bindPopup(`<b>${o.restaurant}</b><br>${o.items}<br>${o.price} TL`);
+                });
+
+                // Panel Güncelle
+                document.getElementById('st-total').innerText = stats.total + " TL";
+                document.getElementById('st-cash').innerText = stats.cash + " TL";
+                document.getElementById('st-card').innerText = stats.card + " TL";
+                document.getElementById('st-online').innerText = stats.online + " TL";
+                document.getElementById('st-cancel').innerText = stats.cancel;
+            });
+
+            map.on('click', e => {
+                if(isAdmin) return alert("Admin olarak sipariş ekleyemezsiniz.");
+                const price = prompt("Tutar girin:");
+                const pay = prompt("Ödeme Türü (Nakit, Kredi Kartı, Online):");
+                if(price) {
+                    db.collection("orders").add({
+                        restaurant: currentRes,
+                        price: price,
+                        pay: pay,
+                        lat: e.latlng.lat,
+                        lng: e.latlng.lng,
+                        items: "Yeni Sipariş",
+                        status: "aktif",
+                        time: new Date().getTime()
+                    });
+                }
             });
         }
-
-        window.deleteOrder = function(id) {
-            if(confirm("Silinsin mi?")) {
-                orders = orders.filter(o => o.id !== id);
-                localStorage.setItem('orders', JSON.stringify(orders));
-                location.reload();
-            }
-        }
-        map.locate({setView: true, maxZoom: 15});
-        render();
     </script>
 </body>
 </html>
