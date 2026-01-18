@@ -3,60 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Düzce Lojistik Operasyon Merkezi</title>
+    <title>Düzce Lojistik - Gün Sonu Paneli</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 50vh; width: 100%; border-radius: 20px; z-index: 10; border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .branch-section { background: #fff; border-radius: 18px; padding: 15px; margin-bottom: 20px; border-top: 6px solid #1e40af; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .order-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-        .order-row:last-child { border-bottom: none; }
-        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 11px; text-decoration: none; }
+        #map { height: 40vh; width: 100%; border-radius: 20px; z-index: 10; border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .branch-section { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 25px; border-top: 8px solid #1e40af; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .stat-grid { display: grid; grid-template-cols: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        .mini-stat { background: #f8fafc; padding: 8px; border-radius: 10px; text-align: center; border: 1px solid #f1f5f9; }
+        .mini-stat p:first-child { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+        .mini-stat p:last-child { font-size: 13px; font-weight: 900; color: #1e293b; }
+        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 8px 12px; border-radius: 10px; font-weight: bold; font-size: 11px; text-decoration: none; display: inline-block; }
         #login-screen { position: fixed; inset: 0; background: #1e40af; z-index: 9999; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
 
     <div id="login-screen">
-        <div class="w-full max-w-sm p-10 bg-white rounded-[35px] shadow-2xl text-center">
-            <h1 class="text-2xl font-black text-blue-900 mb-6 uppercase tracking-tighter">Operasyon Merkezi</h1>
-            <select id="rest-select" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 font-bold outline-none bg-slate-50">
+        <div class="w-full max-w-sm p-10 bg-white rounded-[40px] shadow-2xl text-center">
+            <h1 class="text-2xl font-black text-blue-900 mb-2">OPERASYON MERKEZİ</h1>
+            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-widest italic text-center underline">DÜZCE GÜN SONU RAPORLAMA</p>
+            <select id="rest-select" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 font-bold outline-none bg-slate-50 appearance-none text-center">
                 <option value="">Giriş Türü Seçin</option>
-                <option value="admin">SİSTEM ADMİNİ (MERKEZ)</option>
+                <option value="admin">SİSTEM ADMİNİ</option>
                 <option value="Pizza">Pizza Şubesi</option>
                 <option value="Döner">Döner Şubesi</option>
                 <option value="Kebap">Kebap Şubesi</option>
             </select>
-            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black shadow-lg">GİRİŞ YAP</button>
+            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">SİSTEME GİRİŞ</button>
         </div>
     </div>
 
     <div id="main-panel" class="hidden">
-        <header class="p-6 bg-white flex justify-between items-center border-b">
+        <header class="p-6 bg-white flex justify-between items-center border-b shadow-sm">
             <div>
-                <h2 id="panel-title" class="text-xl font-black text-blue-900">Panel</h2>
-                <span id="role-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase"></span>
+                <h2 id="panel-title" class="text-xl font-black text-blue-900 tracking-tighter">Panel</h2>
+                <span id="role-badge" class="text-[9px] font-black px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase"></span>
             </div>
-            <button onclick="location.reload()" class="bg-slate-100 p-2 rounded-xl text-xs font-bold">Çıkış</button>
+            <button onclick="location.reload()" class="bg-slate-100 p-2 rounded-xl text-xs font-bold text-red-500">Çıkış Yap</button>
         </header>
 
         <div class="grid grid-cols-2 gap-4 p-6">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-blue-600">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">Net Ciro</p>
-                <p id="total-ciro" class="text-xl font-black">0 TL</p>
+            <div class="bg-white p-5 rounded-[25px] shadow-sm border-b-4 border-blue-600">
+                <p class="text-[10px] text-slate-400 font-black uppercase mb-1">Toplam Net Hasılat</p>
+                <p id="total-ciro" class="text-2xl font-black text-blue-900">0 TL</p>
             </div>
-            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-red-500">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">Toplam İptal</p>
-                <p id="total-iptal" class="text-xl font-black">0</p>
+            <div class="bg-white p-5 rounded-[25px] shadow-sm border-b-4 border-emerald-500">
+                <p class="text-[10px] text-slate-400 font-black uppercase mb-1">Tamamlanan İşler</p>
+                <p id="total-adet" class="text-2xl font-black text-emerald-600">0</p>
             </div>
         </div>
 
         <div id="map-container" class="px-6 mb-6 hidden">
             <div id="map"></div>
-            <p class="text-center text-[10px] text-slate-400 mt-2 font-bold italic">Sipariş eklemek için haritaya dokunun</p>
         </div>
 
-        <div id="content-area" class="px-6 pb-20"></div>
+        <div id="content-area" class="px-6 pb-24"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -82,11 +84,10 @@
             currentRest = document.getElementById('rest-select').value;
             if(!currentRest) return alert("Seçim yapınız!");
             userRole = (currentRest === 'admin') ? 'admin' : 'restoran';
-            
             document.getElementById('login-screen').remove();
             document.getElementById('main-panel').classList.remove('hidden');
             document.getElementById('panel-title').innerText = currentRest.toUpperCase();
-            document.getElementById('role-badge').innerText = userRole === 'admin' ? "Merkez Kontrol" : "Şube Erişimi";
+            document.getElementById('role-badge').innerText = userRole === 'admin' ? "Tam Yetkili Admin" : "Şube Müdürü";
 
             if(userRole === 'restoran') {
                 document.getElementById('map-container').classList.remove('hidden');
@@ -99,10 +100,10 @@
             map = L.map('map').setView([40.8438, 31.1565], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             map.on('click', (e) => {
-                const tutar = prompt("Sipariş Tutarı (TL):", "150");
-                const odeme = prompt("Ödeme (Nakit/Kart):", "Kart");
-                if(tutar) db.collection("orders").add({
-                    restoran: currentRest, tutar: parseFloat(tutar), odeme: odeme,
+                const t = prompt("Tutar (TL):", "150");
+                const o = prompt("Ödeme (Nakit/Kart):", "Kart");
+                if(t) db.collection("orders").add({
+                    restoran: currentRest, tutar: parseFloat(t), odeme: o,
                     lat: e.latlng.lat, lng: e.latlng.lng, status: 'aktif',
                     tarih: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -111,54 +112,79 @@
 
         function loadOrders() {
             db.collection("orders").orderBy("tarih", "desc").onSnapshot(snapshot => {
-                let stats = { c: 0, i: 0 };
-                let orders = [];
-                snapshot.forEach(doc => { orders.push({id: doc.id, ...doc.data()}); });
+                let allData = [];
+                snapshot.forEach(doc => allData.push({id: doc.id, ...doc.data()}));
 
                 if(userRole === 'admin') {
-                    let adminHtml = '';
-                    subeler.forEach(sube => {
-                        let subeSiparisleri = orders.filter(o => o.restoran === sube && o.status === 'aktif');
-                        let subeCiro = subeSiparisleri.reduce((a, b) => a + b.tutar, 0);
-                        stats.c += subeCiro;
-                        
-                        adminHtml += `
-                            <div class="branch-section">
-                                <div class="flex justify-between items-center border-b pb-2 mb-2">
-                                    <h3 class="font-black text-blue-900">${sube.toUpperCase()} ŞUBESİ</h3>
-                                    <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-bold">${subeCiro} TL</span>
-                                </div>
-                                <div class="space-y-1">
-                                    ${subeSiparisleri.length > 0 ? subeSiparisleri.map(s => `
-                                        <div class="order-row text-[11px]">
-                                            <span>${s.tutar} TL (${s.odeme})</span>
-                                            <div class="flex gap-2">
-                                                <a href="https://wa.me/?text=Kurye Atandı: ${s.restoran}" class="whatsapp-btn">KURYE ATA</a>
-                                                <button onclick="db.collection('orders').doc('${s.id}').update({status:'iptal'})" class="text-red-500 font-bold">İptal</button>
-                                            </div>
-                                        </div>
-                                    `).join('') : '<p class="text-[10px] text-slate-400 italic">Aktif sipariş yok.</p>'}
-                                </div>
-                            </div>`;
-                    });
-                    document.getElementById('content-area').innerHTML = adminHtml;
+                    renderAdminView(allData);
                 } else {
-                    let restSiparisleri = orders.filter(o => o.restoran === currentRest && o.status === 'aktif');
-                    stats.c = restSiparisleri.reduce((a, b) => a + b.tutar, 0);
-                    let restHtml = '<h3 class="font-black mb-3 text-slate-500 text-sm italic">AKTİF SİPARİŞLERİMİZ</h3>';
-                    restHtml += restSiparisleri.map(s => `
-                        <div class="bg-white p-3 rounded-xl mb-2 flex justify-between items-center shadow-sm">
-                            <span class="text-xs font-bold">${s.tutar} TL - ${s.odeme}</span>
-                            <button onclick="db.collection('orders').doc('${s.id}').update({status:'iptal'})" class="text-red-500 text-xs font-black">İPTAL</button>
-                        </div>
-                    `).join('');
-                    document.getElementById('content-area').innerHTML = restHtml;
+                    renderRestoranView(allData);
                 }
-
-                stats.i = orders.filter(o => o.status === 'iptal' && (userRole === 'admin' || o.restoran === currentRest)).length;
-                document.getElementById('total-ciro').innerText = stats.c + " TL";
-                document.getElementById('total-iptal').innerText = stats.i;
             });
+        }
+
+        function renderAdminView(data) {
+            let adminHtml = '';
+            let totalNet = 0; let totalOrders = 0;
+
+            subeler.forEach(sube => {
+                const subeSiparisleri = data.filter(o => o.restoran === sube);
+                const aktifler = subeSiparisleri.filter(o => o.status === 'aktif');
+                const iptaller = subeSiparisleri.filter(o => o.status === 'iptal');
+                
+                const ciro = aktifler.reduce((a, b) => a + b.tutar, 0);
+                const nakit = aktifler.filter(o => o.odeme === 'Nakit').reduce((a, b) => a + b.tutar, 0);
+                const kart = aktifler.filter(o => o.odeme === 'Kart').reduce((a, b) => a + b.tutar, 0);
+                const kayip = iptaller.reduce((a, b) => a + b.tutar, 0);
+                
+                totalNet += ciro; totalOrders += aktifler.length;
+
+                adminHtml += `
+                    <div class="branch-section">
+                        <div class="flex justify-between items-center border-b pb-4 mb-4">
+                            <h3 class="font-black text-blue-900">${sube.toUpperCase()} ŞUBESİ</h3>
+                            <span class="bg-blue-600 text-white text-[11px] px-3 py-1 rounded-full font-bold">${ciro} TL</span>
+                        </div>
+                        <div class="stat-grid">
+                            <div class="mini-stat"><p>Sipariş Sayısı</p><p>${aktifler.length}</p></div>
+                            <div class="mini-stat"><p>Ort. Sepet</p><p>${aktifler.length ? (ciro/aktifler.length).toFixed(0) : 0} TL</p></div>
+                            <div class="mini-stat"><p>Nakit / Kart</p><p>${nakit} / ${kart}</p></div>
+                            <div class="mini-stat"><p>İptal Hasılat</p><p class="text-red-500">${kayip} TL</p></div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t">
+                            <h4 class="text-[10px] font-black text-slate-400 mb-2 uppercase">Canlı İşlemler</h4>
+                            ${aktifler.map(s => `
+                                <div class="flex justify-between items-center py-2 border-b border-dashed text-[11px]">
+                                    <span>${s.tutar} TL (${s.odeme})</span>
+                                    <button onclick="db.collection('orders').doc('${s.id}').update({status:'iptal'})" class="text-red-500 font-bold">İptal Et</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('content-area').innerHTML = adminHtml;
+            document.getElementById('total-ciro').innerText = totalNet + " TL";
+            document.getElementById('total-adet').innerText = totalOrders;
+        }
+
+        function renderRestoranView(data) {
+            const aktifler = data.filter(o => o.restoran === currentRest && o.status === 'aktif');
+            const iptaller = data.filter(o => o.restoran === currentRest && o.status === 'iptal');
+            const ciro = aktifler.reduce((a, b) => a + b.tutar, 0);
+            
+            let restHtml = `<div class="branch-section mt-6">
+                <h3 class="font-black text-slate-700 text-sm mb-4">BUGÜNKÜ RAPORUMUZ</h3>
+                <div class="stat-grid">
+                    <div class="mini-stat"><p>Toplam Paket</p><p>${aktifler.length}</p></div>
+                    <div class="mini-stat"><p>İptal Sayısı</p><p>${iptaller.length}</p></div>
+                    <div class="mini-stat"><p>Nakit Hasılat</p><p>${aktifler.filter(o => o.odeme === 'Nakit').reduce((a, b) => a + b.tutar, 0)} TL</p></div>
+                    <div class="mini-stat"><p>Kart Hasılat</p><p>${aktifler.filter(o => o.odeme === 'Kart').reduce((a, b) => a + b.tutar, 0)} TL</p></div>
+                </div>
+            </div>`;
+            
+            document.getElementById('content-area').innerHTML = restHtml;
+            document.getElementById('total-ciro').innerText = ciro + " TL";
+            document.getElementById('total-adet').innerText = aktifler.length;
         }
     </script>
 </body>
