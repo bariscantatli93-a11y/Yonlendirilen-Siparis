@@ -3,49 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sipariş SaaS - Yönetim Paneli</title>
+    <title>Düzce Sipariş SaaS - Elite Pro</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 60vh; width: 100%; border-radius: 15px; z-index: 10 !important; position: relative; }
-        .stat-card { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid #3b82f6; }
-        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 10px; border-radius: 8px; font-weight: bold; display: block; text-align: center; margin-top: 10px; text-decoration: none; }
+        #map { height: 55vh; width: 100%; border-radius: 20px; z-index: 10 !important; border: 3px solid white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .order-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 10px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .method-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
+        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 10px; border-radius: 10px; font-weight: bold; display: block; text-align: center; margin-top: 10px; text-decoration: none; }
+        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-slate-50 font-sans text-slate-900">
 
-    <div id="login-screen" class="fixed inset-0 bg-white z-[9999] flex items-center justify-center p-6">
-        <div class="w-full max-w-md space-y-6 text-center">
-            <h1 class="text-3xl font-extrabold text-blue-600 italic">Sipariş SaaS</h1>
-            <p class="text-gray-500">Lütfen Restoranınızı Seçin</p>
-            
-            <select id="rest-select" class="w-full p-4 border-2 border-blue-100 rounded-xl bg-gray-50 text-lg font-semibold outline-none focus:border-blue-500">
-                <option value="">-- Restoran Seçiniz --</option>
-                <option value="admin">YÖNETİCİ (Admin)</option>
-                <option value="Lezzet Döner">Lezzet Döner</option>
-                <option value="Pizza Han">Pizza Han</option>
-                <option value="Saray Kebap">Saray Kebap</option>
-                <option value="Dükkan 1">Dükkan 1</option>
+    <div id="login-screen">
+        <div class="w-full max-w-sm p-8 bg-white rounded-3xl shadow-2xl space-y-6 text-center">
+            <h1 class="text-3xl font-black text-blue-700 tracking-tight">DÜZCE SAAS</h1>
+            <p class="text-slate-400 text-sm">Lojistik Takip Sistemine Hoşgeldiniz</p>
+            <select id="rest-select" class="w-full p-4 border-2 border-slate-100 rounded-2xl bg-slate-50 text-md font-bold outline-none focus:border-blue-500 transition-all">
+                <option value="">Restoran Seçiniz</option>
+                <option value="admin">SİSTEM YÖNETİCİSİ</option>
+                <option value="Merkez Döner">Merkez Döner (İstanbul Cad.)</option>
+                <option value="Krempark Pizza">Krempark Pizza</option>
+                <option value="Spor Sokak Kebap">Spor Sokak Kebap</option>
+                <option value="Konuralp Lezzet">Konuralp Lezzet</option>
             </select>
-
-            <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold text-xl shadow-lg hover:bg-blue-700 transition">Sisteme Giriş Yap</button>
+            <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-blue-700 active:scale-95 transition-all">Giriş Yap</button>
         </div>
     </div>
 
-    <div id="main-panel" class="hidden pb-20">
-        <div class="grid grid-cols-2 gap-3 p-4">
-            <div class="stat-card"><p class="text-xs text-gray-500">TOPLAM CİRO</p><p id="total-ciro" class="text-xl font-bold text-blue-600">0 TL</p></div>
-            <div class="stat-card"><p class="text-xs text-gray-500">SİPARİŞ ADEDİ</p><p id="total-adet" class="text-xl font-bold text-orange-600">0</p></div>
+    <div id="main-panel" class="hidden">
+        <header class="p-6 flex justify-between items-center">
+            <div>
+                <h2 id="welcome-text" class="text-xl font-bold">Panel</h2>
+                <p class="text-xs text-slate-500" id="current-date">Canlı Takip Aktif</p>
+            </div>
+            <button onclick="location.reload()" class="bg-white p-2 rounded-full shadow"><img src="https://img.icons8.com/material-outlined/24/000000/exit.png" width="20"/></button>
+        </header>
+
+        <div class="grid grid-cols-2 gap-4 px-6 mb-6">
+            <div class="bg-white p-4 rounded-2xl shadow-sm"><p class="text-[10px] text-slate-400 font-bold uppercase">Ciro</p><p id="total-ciro" class="text-xl font-black text-blue-600">0</p></div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm"><p class="text-[10px] text-slate-400 font-bold uppercase">Paket</p><p id="total-adet" class="text-xl font-black text-emerald-500">0</p></div>
         </div>
 
-        <div class="px-4"><div id="map"></div></div>
+        <div class="px-6 mb-6"><div id="map"></div></div>
 
-        <div id="admin-area" class="hidden p-4 mt-4 bg-white mx-4 rounded-xl shadow">
-            <h2 class="font-bold border-b pb-2 mb-2">Restoran Özetleri</h2>
-            <div id="summary-list" class="space-y-2 text-sm text-gray-700"></div>
+        <div id="admin-area" class="hidden px-6">
+            <h3 class="font-black text-lg mb-4 flex items-center gap-2">
+                <span class="w-2 h-6 bg-blue-600 rounded-full"></span> Aktif Sipariş Kartları
+            </h3>
+            <div id="order-cards-list" class="space-y-4"></div>
         </div>
-
-        <button onclick="location.reload()" class="w-full mt-10 text-gray-400 text-xs">Oturumu Kapat</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -54,7 +62,7 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCi...", 
+            apiKey: "AIzaSyCi...",
             authDomain: "wpyonsip-6bbb5.firebaseapp.com",
             projectId: "wpyonsip-6bbb5",
             storageBucket: "wpyonsip-6bbb5.appspot.com",
@@ -66,66 +74,99 @@
 
         let map, userRole, currentRest;
 
+        const kuryeler = [
+            {isim: "Kurye Ahmet", lat: 40.8440, lng: 31.1570},
+            {isim: "Kurye Mehmet", lat: 40.8410, lng: 31.1630},
+            {isim: "Kurye Caner", lat: 40.8380, lng: 31.1520},
+            {isim: "Kurye Ali", lat: 40.8480, lng: 31.1480},
+            {isim: "Kurye Selçuk", lat: 40.9080, lng: 31.1800},
+            {isim: "Kurye Mustafa", lat: 40.8420, lng: 31.1650}
+        ];
+
+        const musteriler = ["Ayşe Teyze", "Öğrenci Mert", "Esnaf Osman Bey", "Avukat Ebru", "Doktor Selim", "Emekli Hasan Amca"];
+        const odemeYontemleri = ["Nakit", "Kredi Kartı", "Online Ödeme"];
+
+        function getDist(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2-lat1) * Math.PI / 180;
+            const dLon = (lon2-lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+        }
+
         function handleLogin() {
-            const select = document.getElementById('rest-select');
-            currentRest = select.value;
-            if(!currentRest) return alert("Lütfen bir restoran seçin!");
-            
+            currentRest = document.getElementById('rest-select').value;
+            if(!currentRest) return alert("Seçim Yap!");
             userRole = (currentRest === 'admin') ? 'admin' : 'restoran';
-            
             document.getElementById('login-screen').remove();
             document.getElementById('main-panel').classList.remove('hidden');
+            document.getElementById('welcome-text').innerText = currentRest;
             if(userRole === 'admin') document.getElementById('admin-area').classList.remove('hidden');
-
             initMap();
             loadOrders();
+            if(userRole !== 'admin') seedOrder();
         }
 
         function initMap() {
-            map = L.map('map').setView([39.9334, 32.8597], 12);
+            map = L.map('map').setView([40.8438, 31.1565], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        }
 
-            map.on('click', function(e) {
-                if(userRole === 'admin') return;
-                const tutar = prompt(currentRest + " için Sipariş Tutarı:", "150");
-                if(!tutar) return;
+        function seedOrder() {
+            const kurye = kuryeler[Math.floor(Math.random() * kuryeler.length)];
+            const dLat = 40.8425, dLng = 31.1590;
+            const mLat = dLat + (Math.random() - 0.5) * 0.03;
+            const mLng = dLng + (Math.random() - 0.5) * 0.03;
 
-                db.collection("orders").add({
-                    restoran: currentRest,
-                    tutar: parseFloat(tutar),
-                    lat: e.latlng.lat,
-                    lng: e.latlng.lng,
-                    tarih: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            db.collection("orders").add({
+                restoran: currentRest,
+                musteri: musteriler[Math.floor(Math.random() * musteriler.length)],
+                tutar: Math.floor(Math.random() * 400) + 100,
+                odeme: odemeYontemleri[Math.floor(Math.random() * odemeYontemleri.length)],
+                lat: mLat, lng: mLng,
+                kurye: kurye.isim, kLat: kurye.lat, kLng: kurye.lng,
+                tarih: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
 
         function loadOrders() {
             db.collection("orders").orderBy("tarih", "desc").onSnapshot(snapshot => {
-                let stats = { ciro: 0, adet: 0 };
-                let rSummary = {};
+                let stats = { c: 0, a: 0 };
+                let cardsHtml = '';
                 
                 snapshot.forEach(doc => {
                     const d = doc.data();
                     if(userRole === 'admin' || d.restoran === currentRest) {
-                        stats.ciro += d.tutar; stats.adet++;
+                        stats.c += d.tutar; stats.a++;
                         
-                        const waMsg = encodeURIComponent(`Sipariş!\nRestoran: ${d.restoran}\nTutar: ${d.tutar} TL\nKonum: https://www.google.com/maps?q=${d.lat},${d.lng}`);
-                        L.circleMarker([d.lat, d.lng], {color: 'red', radius: 10}).addTo(map)
-                         .bindPopup(`<b>${d.restoran}</b><br>${d.tutar} TL<br><a href="https://wa.me/?text=${waMsg}" class="whatsapp-btn">Kuryeye Gönder</a>`);
-                    }
-                    if(!rSummary[d.restoran]) rSummary[d.restoran] = {s:0, t:0};
-                    rSummary[d.restoran].s++; rSummary[d.restoran].t += d.tutar;
-                });
+                        const kuryeMesafe = getDist(d.kLat, d.kLng, 40.8425, 31.1590);
+                        const teslimMesafe = getDist(40.8425, 31.1590, d.lat, d.lng);
+                        const methodColor = d.odeme === 'Nakit' ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600';
 
-                document.getElementById('total-ciro').innerText = stats.ciro + " TL";
-                document.getElementById('total-adet').innerText = stats.adet;
-                
-                if(userRole === 'admin') {
-                    let h = '';
-                    for(let r in rSummary) h += `<div class='flex justify-between'><span>${r}:</span> <b>${rSummary[r].s} Sip. / ${rSummary[r].t} TL</b></div>`;
-                    document.getElementById('summary-list').innerHTML = h;
-                }
+                        if(userRole === 'admin') {
+                            cardsHtml += `
+                                <div class="order-card">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-black text-blue-600">${d.restoran}</span>
+                                        <span class="method-badge ${methodColor}">${d.odeme}</span>
+                                    </div>
+                                    <div class="text-sm font-bold text-slate-700">Müşteri: ${d.musteri}</div>
+                                    <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-500">
+                                        <span class="bg-slate-100 px-2 py-1 rounded">🚚 ${d.kurye} (${kuryeMesafe} km)</span>
+                                        <span class="bg-slate-100 px-2 py-1 rounded">📍 Teslimat: ${teslimMesafe} km</span>
+                                    </div>
+                                    <div class="mt-3 text-right font-black text-lg">${d.tutar} TL</div>
+                                </div>`;
+                        }
+
+                        const waMsg = encodeURIComponent(`YENİ SİPARİŞ!\nRestoran: ${d.restoran}\nMüşteri: ${d.musteri}\nTutar: ${d.tutar} TL\nKurye: ${d.kurye}\nKonum: http://google.com/maps?q=${d.lat},${d.lng}`);
+                        L.circleMarker([d.lat, d.lng], {color: '#3b82f6', radius: 10, fillOpacity: 0.9}).addTo(map)
+                         .bindPopup(`<b>${d.musteri}</b><br>${d.tutar} TL<br><a href="https://wa.me/?text=${waMsg}" class="whatsapp-btn">Kuryeye WhatsApp At</a>`);
+                    }
+                });
+                document.getElementById('total-ciro').innerText = stats.c + " TL";
+                document.getElementById('total-adet').innerText = stats.a;
+                if(userRole === 'admin') document.getElementById('order-cards-list').innerHTML = cardsHtml;
             });
         }
     </script>
