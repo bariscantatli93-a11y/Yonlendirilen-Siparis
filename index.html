@@ -3,74 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Düzce Lojistik Operasyon Merkezi - Elite Admin</title>
+    <title>Düzce Lojistik Operasyon Merkezi</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 40vh; width: 100%; border-radius: 25px; border: 4px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .branch-card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; transition: all 0.3s ease; }
-        .filter-btn { padding: 8px 16px; border-radius: 12px; font-size: 11px; font-weight: 900; transition: 0.3s; background: white; border: 2px solid #e2e8f0; }
+        #map { height: 40vh; width: 100%; border-radius: 25px; border: 4px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 1; }
+        .branch-card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; border-left: 8px solid #1e40af; shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .filter-btn { padding: 8px 12px; border-radius: 12px; font-size: 11px; font-weight: 800; background: white; border: 2px solid #e2e8f0; cursor: pointer; }
         .filter-btn.active { background: #1e40af; color: white; border-color: #1e40af; }
-        .kurye-row { display: flex; justify-content: space-between; font-size: 10px; padding: 5px 0; border-bottom: 1px dashed #e2e8f0; }
-        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 8px; border-radius: 10px; font-weight: bold; font-size: 11px; text-align: center; display: block; }
-        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 6px 10px; border-radius: 8px; font-weight: bold; font-size: 10px; text-decoration: none; display: inline-block; }
+        #login-screen { position: fixed; inset: 0; background: #1e40af; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-900 font-sans">
 
     <div id="login-screen">
-        <div class="w-full max-w-sm p-10 bg-white rounded-[45px] shadow-2xl text-center">
-            <h1 class="text-3xl font-black text-blue-900 mb-2 italic">DÜZCE LOJİSTİK</h1>
-            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.3em]">OPERASYON MERKEZİ</p>
+        <div class="w-full max-w-sm p-10 bg-white rounded-[40px] shadow-2xl text-center">
+            <h1 class="text-2xl font-black text-blue-900 mb-2 italic">DÜZCE LOJİSTİK</h1>
+            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-widest uppercase">Operasyon Merkezi</p>
             <select id="rest-select" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 font-bold outline-none bg-slate-50 text-center">
-                <option value="">Giriş Yapın</option>
-                <option value="admin">SİSTEM ADMİNİ</option>
+                <option value="">Giriş Türünü Seçin</option>
+                <option value="admin">SİSTEM ADMİNİ (MERKEZ)</option>
                 <option value="Pizza">Pizza Şubesi</option>
                 <option value="Döner">Döner Şubesi</option>
                 <option value="Kebap">Kebap Şubesi</option>
             </select>
-            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black shadow-xl hover:bg-blue-800 transition-all">PANELİ AÇ</button>
+            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black shadow-lg hover:bg-blue-800 transition-all">GİRİŞ YAP</button>
         </div>
     </div>
 
     <div id="main-panel" class="hidden">
-        <header class="p-6 bg-white flex justify-between items-center shadow-sm">
+        <header class="p-5 bg-white flex justify-between items-center shadow-sm border-b">
             <div>
-                <h2 id="panel-title" class="text-xl font-black text-blue-900 tracking-tighter">Panel</h2>
-                <div id="role-badge" class="text-[9px] font-black px-2 py-0.5 rounded bg-blue-600 text-white inline-block uppercase mt-1"></div>
+                <h2 id="panel-title" class="text-lg font-black text-blue-900">Panel</h2>
+                <span id="role-badge" class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase"></span>
             </div>
-            <button onclick="location.reload()" class="bg-red-50 text-red-500 p-2 rounded-xl text-[10px] font-black">OTURUMU KAPAT</button>
+            <button onclick="location.reload()" class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-red-500">Çıkış</button>
         </header>
 
-        <div id="admin-filters" class="hidden p-6 overflow-x-auto flex gap-2 no-scrollbar">
+        <div class="grid grid-cols-2 gap-4 p-5">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-blue-600 text-center">
+                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Toplam Ciro</p>
+                <p id="total-ciro" class="text-xl font-black text-blue-900">0 TL</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-emerald-500 text-center">
+                <p id="stat-label" class="text-[9px] text-slate-400 font-bold uppercase mb-1">Aktif Sipariş</p>
+                <p id="total-adet" class="text-xl font-black text-emerald-600">0</p>
+            </div>
+        </div>
+
+        <div id="admin-filters" class="hidden px-5 mb-4 flex gap-2 overflow-x-auto no-scrollbar">
             <button onclick="filterBranch('all')" id="btn-all" class="filter-btn active">TÜMÜ</button>
             <button onclick="filterBranch('Pizza')" id="btn-Pizza" class="filter-btn">PİZZA</button>
             <button onclick="filterBranch('Döner')" id="btn-Döner" class="filter-btn">DÖNER</button>
             <button onclick="filterBranch('Kebap')" id="btn-Kebap" class="filter-btn">KEBAP</button>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 px-6 mb-6">
-            <div class="bg-white p-5 rounded-[30px] shadow-sm border-b-4 border-blue-600">
-                <p class="text-[9px] text-slate-400 font-black uppercase mb-1 tracking-widest">Net Hasılat</p>
-                <p id="total-ciro" class="text-2xl font-black text-blue-900">0 TL</p>
-            </div>
-            <div class="bg-white p-5 rounded-[30px] shadow-sm border-b-4 border-emerald-500">
-                <p class="text-[9px] text-slate-400 font-black uppercase mb-1 tracking-widest">Aktif Paket</p>
-                <p id="total-adet" class="text-2xl font-black text-emerald-600">0</p>
-            </div>
+        <div id="map-container" class="px-5 mb-5 hidden">
+            <div id="map"></div>
+            <p class="text-[10px] text-center text-slate-400 mt-2 italic font-bold">Konum seçmek için haritaya dokunun</p>
         </div>
 
-        <div id="map-container" class="px-6 mb-6 hidden"><div id="map"></div></div>
-
-        <div id="admin-analytics" class="hidden px-6 mb-6">
-            <div class="bg-blue-900 text-white p-5 rounded-[30px] shadow-xl">
-                <h3 class="text-xs font-black mb-3 italic">CANLI KURYE TRAFİĞİ</h3>
-                <div id="kurye-list" class="space-y-1">
-                    </div>
-            </div>
-        </div>
-
-        <div id="content-area" class="px-6 pb-24"></div>
+        <div id="content-area" class="px-5 pb-20"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -78,69 +73,134 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyCi...", authDomain: "wpyonsip-6bbb5.firebaseapp.com", projectId: "wpyonsip-6bbb5", storageBucket: "wpyonsip-6bbb5.appspot.com", messagingSenderId: "338804071850", appId: "1:338804071850:web:138a2e5d590403756b66e3" };
+        // LÜTFEN KENDİ API KEY'İNİZİ BURAYA YAZIN
+        const firebaseConfig = {
+            apiKey: "BURAYA_KENDI_API_ANAHTARINI_YAZ", 
+            authDomain: "wpyonsip-6bbb5.firebaseapp.com",
+            projectId: "wpyonsip-6bbb5",
+            storageBucket: "wpyonsip-6bbb5.appspot.com",
+            messagingSenderId: "338804071850",
+            appId: "1:338804071850:web:138a2e5d590403756b66e3"
+        };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         let userRole, currentRest, map, activeFilter = 'all';
-        const kuryeler = ["Kurye Ahmet", "Kurye Mehmet", "Kurye Caner", "Kurye Ali", "Kurye Selçuk", "Kurye Mert"];
 
         function handleLogin() {
             currentRest = document.getElementById('rest-select').value;
-            if(!currentRest) return alert("Seçim Yap!");
+            if(!currentRest) { alert("Lütfen bir giriş türü seçin!"); return; }
+            
             userRole = (currentRest === 'admin') ? 'admin' : 'restoran';
-            document.getElementById('login-screen').remove();
+            
+            document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-panel').classList.remove('hidden');
             document.getElementById('panel-title').innerText = currentRest.toUpperCase();
-            document.getElementById('role-badge').innerText = userRole === 'admin' ? "Tam Yetkili Operasyon Merkezi" : "Şube Erişimi";
+            document.getElementById('role-badge').innerText = userRole === 'admin' ? "Tam Yetkili Merkez" : "Şube Paneli";
 
             if(userRole === 'admin') {
                 document.getElementById('admin-filters').classList.remove('hidden');
-                document.getElementById('admin-analytics').classList.remove('hidden');
             } else {
                 document.getElementById('map-container').classList.remove('hidden');
-                initMap();
+                document.getElementById('stat-label').innerText = "Günlük Kazancım";
+                setTimeout(initMap, 500); // Haritanın düzgün yüklenmesi için kısa delay
             }
             loadOrders();
+        }
+
+        function initMap() {
+            if (map) return;
+            map = L.map('map').setView([40.8438, 31.1565], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            
+            map.on('click', (e) => {
+                const tutar = prompt("Sipariş Tutarı (TL):", "100");
+                const odeme = prompt("Ödeme Yöntemi (Nakit/Kart):", "Kart");
+                if(tutar && odeme) {
+                    db.collection("orders").add({
+                        restoran: currentRest,
+                        tutar: parseFloat(tutar),
+                        odeme: odeme,
+                        lat: e.latlng.lat,
+                        lng: e.latlng.lng,
+                        status: 'aktif',
+                        tarih: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(() => alert("Sipariş Kaydedildi!"));
+                }
+            });
         }
 
         function filterBranch(branch) {
             activeFilter = branch;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('btn-' + branch).classList.add('active');
-            loadOrders(); // Veriyi tekrar filtrele
-        }
-
-        function initMap() {
-            map = L.map('map').setView([40.8438, 31.1565], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            map.on('click', (e) => {
-                const t = prompt("Tutar:", "150");
-                const o = prompt("Ödeme (Nakit/Kart):", "Nakit");
-                if(t) db.collection("orders").add({
-                    restoran: currentRest, tutar: parseFloat(t), odeme: o,
-                    lat: e.latlng.lat, lng: e.latlng.lng, status: 'aktif',
-                    kurye: kuryeler[Math.floor(Math.random() * kuryeler.length)],
-                    tarih: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            });
+            loadOrders();
         }
 
         function loadOrders() {
             db.collection("orders").orderBy("tarih", "desc").onSnapshot(snapshot => {
-                let allData = [];
-                snapshot.forEach(doc => allData.push({id: doc.id, ...doc.data()}));
-                
+                let html = '';
                 let stats = { ciro: 0, adet: 0 };
-                let kuryeIsleri = {}; kuryeler.forEach(k => kuryeIsleri[k] = 0);
+                const subeler = ["Pizza", "Döner", "Kebap"];
 
-                // Admin Görünümü
                 if(userRole === 'admin') {
-                    let html = '';
-                    const subeler = ["Pizza", "Döner", "Kebap"];
-                    
                     subeler.forEach(sube => {
                         if(activeFilter !== 'all' && activeFilter !== sube) return;
                         
-                        const sData = allData.filter(o => o.restoran === sube && o.status === 'aktif');
-                        const sCiro = sData
+                        const sData = [];
+                        snapshot.forEach(doc => {
+                            const d = doc.data();
+                            if(d.restoran === sube && d.status === 'aktif') sData.push({id: doc.id, ...d});
+                        });
+
+                        const subeCiro = sData.reduce((a, b) => a + b.tutar, 0);
+                        stats.ciro += subeCiro;
+                        stats.adet += sData.length;
+
+                        html += `
+                            <div class="branch-card">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h3 class="font-black text-blue-900">${sube.toUpperCase()}</h3>
+                                    <span class="bg-blue-50 text-blue-700 text-[10px] px-2 py-1 rounded font-bold">${subeCiro} TL</span>
+                                </div>
+                                ${sData.map(s => `
+                                    <div class="flex justify-between items-center py-2 border-b border-dashed text-[11px]">
+                                        <span>${s.tutar} TL (${s.odeme})</span>
+                                        <div class="flex gap-2">
+                                            <a href="https://wa.me/?text=Sipariş:${s.tutar}" class="whatsapp-btn">Kurye Ata</a>
+                                            <button onclick="db.collection('orders').doc('${s.id}').update({status:'iptal'})" class="text-red-500 font-bold">İptal</button>
+                                        </div>
+                                    </div>
+                                `).join('') || '<p class="text-[10px] text-slate-400 italic">Aktif sipariş yok.</p>'}
+                            </div>`;
+                    });
+                } else {
+                    const rData = [];
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        if(d.restoran === currentRest && d.status === 'aktif') rData.push({id: doc.id, ...d});
+                    });
+                    stats.ciro = rData.reduce((a, b) => a + b.tutar, 0);
+                    stats.adet = rData.length;
+
+                    html = `<h3 class="font-black text-sm text-slate-500 mb-4 italic uppercase">Sipariş Listem</h3>`;
+                    html += rData.map(s => `
+                        <div class="bg-white p-4 rounded-2xl mb-2 flex justify-between shadow-sm border-r-4 border-blue-500">
+                            <span class="font-bold text-xs">${s.tutar} TL - ${s.odeme}</span>
+                            <button onclick="db.collection('orders').doc('${s.id}').update({status:'iptal'})" class="text-red-500 font-black text-[10px]">İPTAL</button>
+                        </div>
+                    `).join('');
+                }
+
+                document.getElementById('content-area').innerHTML = html;
+                document.getElementById('total-ciro').innerText = stats.ciro + " TL";
+                document.getElementById('total-adet').innerText = stats.adet;
+            }, err => {
+                console.error("Firestore Hatası:", err);
+                alert("Veri bağlantı hatası! Firebase izinlerini kontrol edin.");
+            });
+        }
+    </script>
+</body>
+</html>
