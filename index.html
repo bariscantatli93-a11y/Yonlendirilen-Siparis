@@ -3,61 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Düzce Lojistik Operasyon Merkezi - Admin Pro</title>
+    <title>Düzce Lojistik Operasyon Merkezi</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 50vh; width: 100%; border-radius: 24px; z-index: 10; border: 5px solid white; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .admin-order-card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 12px; border-left: 8px solid #1d4ed8; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .restoran-dot { background: #1d4ed8; border: 2px solid white; border-radius: 50%; height: 12px; width: 12px; display: inline-block; }
-        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 10px; border-radius: 12px; font-weight: bold; display: block; text-align: center; margin-top: 10px; text-decoration: none; font-size: 13px; }
-        #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at center, #1e40af, #1e3a8a); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        #map { height: 50vh; width: 100%; border-radius: 20px; z-index: 10; border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .branch-section { background: #fff; border-radius: 18px; padding: 15px; margin-bottom: 20px; border-top: 6px solid #1e40af; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .order-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .order-row:last-child { border-bottom: none; }
+        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 11px; text-decoration: none; }
+        #login-screen { position: fixed; inset: 0; background: #1e40af; z-index: 9999; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-<body class="bg-slate-100">
+<body class="bg-slate-50 text-slate-900 font-sans">
 
     <div id="login-screen">
-        <div class="w-full max-w-sm p-10 bg-white rounded-[40px] shadow-2xl text-center">
-            <h1 class="text-3xl font-black text-blue-900 mb-2">DÜZCE LOJİSTİK</h1>
-            <p class="text-slate-400 text-[10px] font-bold tracking-[0.2em] mb-8">OPERASYON MERKEZİ</p>
-            <select id="rest-select" class="w-full p-5 border-2 border-slate-100 rounded-2xl mb-5 font-bold outline-none focus:border-blue-600 appearance-none bg-slate-50">
+        <div class="w-full max-w-sm p-10 bg-white rounded-[35px] shadow-2xl text-center">
+            <h1 class="text-2xl font-black text-blue-900 mb-6 uppercase tracking-tighter">Operasyon Merkezi</h1>
+            <select id="rest-select" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 font-bold outline-none bg-slate-50">
                 <option value="">Giriş Türü Seçin</option>
-                <option value="admin">ADMİN (TÜM SİSTEM)</option>
-                <option value="Merkez Döner">Merkez Döner</option>
-                <option value="Krempark Pizza">Krempark Pizza</option>
-                <option value="Spor Sokak Kebap">Spor Sokak Kebap</option>
+                <option value="admin">SİSTEM ADMİNİ (MERKEZ)</option>
+                <option value="Pizza">Pizza Şubesi</option>
+                <option value="Döner">Döner Şubesi</option>
+                <option value="Kebap">Kebap Şubesi</option>
             </select>
-            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-5 rounded-2xl font-black hover:bg-blue-800 shadow-lg shadow-blue-200 transition-all">SİSTEME BAĞLAN</button>
+            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black shadow-lg">GİRİŞ YAP</button>
         </div>
     </div>
 
     <div id="main-panel" class="hidden">
-        <div class="p-6 bg-white flex justify-between items-center border-b">
+        <header class="p-6 bg-white flex justify-between items-center border-b">
             <div>
                 <h2 id="panel-title" class="text-xl font-black text-blue-900">Panel</h2>
-                <div class="flex items-center gap-2">
-                    <span id="role-badge" class="text-[10px] font-black px-2 py-1 rounded bg-blue-600 text-white uppercase tracking-tighter"></span>
-                </div>
+                <span id="role-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase"></span>
             </div>
-            <button onclick="location.reload()" class="bg-slate-100 p-3 rounded-2xl"><img src="https://img.icons8.com/ios-filled/24/1e3a8a/logout-rounded.png" width="20"/></button>
-        </div>
+            <button onclick="location.reload()" class="bg-slate-100 p-2 rounded-xl text-xs font-bold">Çıkış</button>
+        </header>
 
-        <div class="flex gap-3 p-6 overflow-x-auto no-scrollbar">
-            <div class="min-w-[120px] bg-white p-4 rounded-2xl shadow-sm border-b-4 border-blue-600">
-                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Ciro</p>
-                <p id="total-ciro" class="text-lg font-black text-blue-900">0 TL</p>
+        <div class="grid grid-cols-2 gap-4 p-6">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-blue-600">
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Net Ciro</p>
+                <p id="total-ciro" class="text-xl font-black">0 TL</p>
             </div>
-            <div class="min-w-[120px] bg-white p-4 rounded-2xl shadow-sm border-b-4 border-emerald-500">
-                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Aktif Sip.</p>
-                <p id="total-adet" class="text-lg font-black text-emerald-700">0</p>
-            </div>
-            <div class="min-w-[120px] bg-white p-4 rounded-2xl shadow-sm border-b-4 border-red-500">
-                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">İptal</p>
-                <p id="total-iptal" class="text-lg font-black text-red-600">0</p>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border-b-4 border-red-500">
+                <p class="text-[10px] text-slate-400 font-bold uppercase">Toplam İptal</p>
+                <p id="total-iptal" class="text-xl font-black">0</p>
             </div>
         </div>
 
-        <div class="px-6 mb-6"><div id="map"></div></div>
+        <div id="map-container" class="px-6 mb-6 hidden">
+            <div id="map"></div>
+            <p class="text-center text-[10px] text-slate-400 mt-2 font-bold italic">Sipariş eklemek için haritaya dokunun</p>
+        </div>
 
         <div id="content-area" class="px-6 pb-20"></div>
     </div>
@@ -68,7 +65,7 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCi...", 
+            apiKey: "AIzaSyCi...",
             authDomain: "wpyonsip-6bbb5.firebaseapp.com",
             projectId: "wpyonsip-6bbb5",
             storageBucket: "wpyonsip-6bbb5.appspot.com",
@@ -79,17 +76,11 @@
         const db = firebase.firestore();
 
         let map, userRole, currentRest;
-
-        // Düzce'deki Sabit Restoran Konumları
-        const sabitRestoranlar = [
-            {isim: "Merkez Döner", lat: 40.8425, lng: 31.1590},
-            {isim: "Krempark Pizza", lat: 40.8400, lng: 31.1550},
-            {isim: "Spor Sokak Kebap", lat: 40.8415, lng: 31.1610}
-        ];
+        const subeler = ["Pizza", "Döner", "Kebap"];
 
         function handleLogin() {
             currentRest = document.getElementById('rest-select').value;
-            if(!currentRest) return alert("Giriş türü seçiniz!");
+            if(!currentRest) return alert("Seçim yapınız!");
             userRole = (currentRest === 'admin') ? 'admin' : 'restoran';
             
             document.getElementById('login-screen').remove();
@@ -97,79 +88,76 @@
             document.getElementById('panel-title').innerText = currentRest.toUpperCase();
             document.getElementById('role-badge').innerText = userRole === 'admin' ? "Merkez Kontrol" : "Şube Erişimi";
 
-            initMap();
+            if(userRole === 'restoran') {
+                document.getElementById('map-container').classList.remove('hidden');
+                initMap();
+            }
             loadOrders();
         }
 
         function initMap() {
-            map = L.map('map').setView([40.8438, 31.1565], 14);
+            map = L.map('map').setView([40.8438, 31.1565], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-            // Admin girişinde tüm restoranları haritaya işaretle
-            if(userRole === 'admin') {
-                sabitRestoranlar.forEach(rest => {
-                    L.marker([rest.lat, rest.lng], {
-                        icon: L.divIcon({className: 'restoran-dot', iconSize: [12, 12]})
-                    }).addTo(map).bindPopup(`<b>${rest.isim} (Şube)</b>`);
-                });
-            }
-
             map.on('click', (e) => {
-                if(userRole === 'admin') return;
-                const tutar = prompt("Tutar:", "120");
-                const odeme = prompt("Ödeme Yöntemi (Nakit/Kart):", "Kart");
-                if(tutar) {
-                    db.collection("orders").add({
-                        restoran: currentRest, tutar: parseFloat(tutar), odeme: odeme,
-                        lat: e.latlng.lat, lng: e.latlng.lng, status: 'aktif',
-                        tarih: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
+                const tutar = prompt("Sipariş Tutarı (TL):", "150");
+                const odeme = prompt("Ödeme (Nakit/Kart):", "Kart");
+                if(tutar) db.collection("orders").add({
+                    restoran: currentRest, tutar: parseFloat(tutar), odeme: odeme,
+                    lat: e.latlng.lat, lng: e.latlng.lng, status: 'aktif',
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
             });
         }
 
         function loadOrders() {
             db.collection("orders").orderBy("tarih", "desc").onSnapshot(snapshot => {
-                let stats = { c: 0, a: 0, i: 0 };
-                let listHtml = '';
-                
-                // Haritayı temizle (sadece sipariş pinleri için)
-                map.eachLayer((layer) => { if (layer instanceof L.CircleMarker) map.removeLayer(layer); });
+                let stats = { c: 0, i: 0 };
+                let orders = [];
+                snapshot.forEach(doc => { orders.push({id: doc.id, ...doc.data()}); });
 
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    if(userRole === 'admin' || d.restoran === currentRest) {
-                        if(d.status === 'aktif') {
-                            stats.c += d.tutar; stats.a++;
-                            
-                            // Haritaya Sipariş Pini Ekle
-                            L.circleMarker([d.lat, d.lng], {color: 'red', radius: 10, weight: 3, fillOpacity: 0.7}).addTo(map)
-                             .bindPopup(`<b>${d.restoran}</b><br>${d.tutar} TL`);
-
-                            if(userRole === 'admin') {
-                                listHtml += `
-                                    <div class="admin-order-card">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <span class="font-black text-blue-700 text-sm underline">${d.restoran}</span>
-                                            <span class="bg-blue-50 text-blue-600 text-[10px] px-2 py-1 rounded-lg font-bold">${d.odeme}</span>
+                if(userRole === 'admin') {
+                    let adminHtml = '';
+                    subeler.forEach(sube => {
+                        let subeSiparisleri = orders.filter(o => o.restoran === sube && o.status === 'aktif');
+                        let subeCiro = subeSiparisleri.reduce((a, b) => a + b.tutar, 0);
+                        stats.c += subeCiro;
+                        
+                        adminHtml += `
+                            <div class="branch-section">
+                                <div class="flex justify-between items-center border-b pb-2 mb-2">
+                                    <h3 class="font-black text-blue-900">${sube.toUpperCase()} ŞUBESİ</h3>
+                                    <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-bold">${subeCiro} TL</span>
+                                </div>
+                                <div class="space-y-1">
+                                    ${subeSiparisleri.length > 0 ? subeSiparisleri.map(s => `
+                                        <div class="order-row text-[11px]">
+                                            <span>${s.tutar} TL (${s.odeme})</span>
+                                            <div class="flex gap-2">
+                                                <a href="https://wa.me/?text=Kurye Atandı: ${s.restoran}" class="whatsapp-btn">KURYE ATA</a>
+                                                <button onclick="db.collection('orders').doc('${s.id}').update({status:'iptal'})" class="text-red-500 font-bold">İptal</button>
+                                            </div>
                                         </div>
-                                        <div class="text-lg font-black mb-2">${d.tutar} TL</div>
-                                        <div class="flex gap-2">
-                                            <a href="https://wa.me/?text=Sipariş Detayı: ${d.restoran} - ${d.tutar}TL" class="whatsapp-btn flex-1 m-0">KURYE YÖNLENDİR</a>
-                                            <button onclick="db.collection('orders').doc('${doc.id}').update({status:'iptal'})" class="bg-red-50 text-red-600 px-3 rounded-xl font-bold text-[10px]">İPTAL</button>
-                                        </div>
-                                    </div>`;
-                            }
-                        } else {
-                            stats.i++;
-                        }
-                    }
-                });
+                                    `).join('') : '<p class="text-[10px] text-slate-400 italic">Aktif sipariş yok.</p>'}
+                                </div>
+                            </div>`;
+                    });
+                    document.getElementById('content-area').innerHTML = adminHtml;
+                } else {
+                    let restSiparisleri = orders.filter(o => o.restoran === currentRest && o.status === 'aktif');
+                    stats.c = restSiparisleri.reduce((a, b) => a + b.tutar, 0);
+                    let restHtml = '<h3 class="font-black mb-3 text-slate-500 text-sm italic">AKTİF SİPARİŞLERİMİZ</h3>';
+                    restHtml += restSiparisleri.map(s => `
+                        <div class="bg-white p-3 rounded-xl mb-2 flex justify-between items-center shadow-sm">
+                            <span class="text-xs font-bold">${s.tutar} TL - ${s.odeme}</span>
+                            <button onclick="db.collection('orders').doc('${s.id}').update({status:'iptal'})" class="text-red-500 text-xs font-black">İPTAL</button>
+                        </div>
+                    `).join('');
+                    document.getElementById('content-area').innerHTML = restHtml;
+                }
 
+                stats.i = orders.filter(o => o.status === 'iptal' && (userRole === 'admin' || o.restoran === currentRest)).length;
                 document.getElementById('total-ciro').innerText = stats.c + " TL";
-                document.getElementById('total-adet').innerText = stats.a;
                 document.getElementById('total-iptal').innerText = stats.i;
-                if(userRole === 'admin') document.getElementById('content-area').innerHTML = listHtml;
             });
         }
     </script>
