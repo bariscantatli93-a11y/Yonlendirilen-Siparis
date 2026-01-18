@@ -2,161 +2,190 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sipariş SaaS - Profesyonel Yönetim Paneli</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sipariş SaaS - Kurye Modülü</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --primary: #e63946; --secondary: #1d3557; --accent: #2ecc71; --admin: #8e44ad; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        #auth-screen { position: fixed; inset: 0; background: var(--secondary); z-index: 2000; display: flex; align-items: center; justify-content: center; color: white; }
-        .login-box { background: white; color: #333; padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; }
-        .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px; background: #fff; border-bottom: 2px solid #ddd; }
-        .stat-card { background: #fff; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-bottom: 3px solid var(--primary); }
-        .stat-card h5 { margin: 0; font-size: 11px; color: #777; }
-        .stat-card p { margin: 5px 0 0 0; font-weight: bold; font-size: 14px; color: var(--secondary); }
-        #map { flex: 1; z-index: 1; }
-        #admin-panel { height: 180px; background: white; overflow-y: auto; display: none; border-top: 3px solid var(--admin); padding: 10px; font-size: 12px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #eee; padding: 8px; text-align: left; }
-        td { padding: 8px; border-bottom: 1px solid #eee; }
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 15px; z-index: 3000; width: 80%; max-width: 300px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2900; }
-        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; }
-        .btn-add { background: var(--primary); color: white; border: none; font-weight: bold; }
+        #map { height: 60vh; width: 100%; border-radius: 15px; z-index: 1; }
+        .stat-card { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .whatsapp-btn { background-color: #25D366; color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; display: inline-block; margin-top: 5px; cursor: pointer; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans">
 
-    <div id="auth-screen">
-        <div class="login-box">
-            <h2 style="color: var(--primary)">Sipariş Paneli</h2>
-            <input type="text" id="resName" placeholder="Restoran Adı">
-            <input type="password" id="resPass" placeholder="Şifre">
-            <button class="btn-add" onclick="login()">GİRİŞ YAP</button>
-            <p style="color: #999; font-size: 11px;">Admin için: admin / 1234</p>
+    <div id="login-screen" class="fixed inset-0 bg-white z-[9999] flex items-center justify-center p-6">
+        <div class="w-full max-w-md space-y-4 text-center">
+            <h1 class="text-2xl font-bold text-blue-600 mb-6">Sipariş SaaS Giriş</h1>
+            <input type="text" id="username" placeholder="Restoran Adı veya admin" class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="password" id="password" placeholder="Şifre" class="w-full p-4 border rounded-xl outline-none">
+            <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold text-lg hover:bg-blue-700">Giriş Yap</button>
         </div>
     </div>
 
-    <div class="stats-bar" id="stats-panel" style="display:none;">
-        <div class="stat-card"><h5>Ciro</h5><p id="st-total">0 TL</p></div>
-        <div class="stat-card" style="border-color:#2ecc71"><h5>Nakit</h5><p id="st-cash">0 TL</p></div>
-        <div class="stat-card" style="border-color:#3498db"><h5>Kart</h5><p id="st-card">0 TL</p></div>
-        <div class="stat-card" style="border-color:#f1c40f"><h5>Online</h5><p id="st-online">0 TL</p></div>
-        <div class="stat-card" style="border-color:#e67e22"><h5>Adet</h5><p id="st-count">0</p></div>
-        <button onclick="location.reload()" style="font-size:10px; padding:2px;">Çıkış</button>
+    <div id="main-panel" class="hidden pb-20">
+        <div class="grid grid-cols-2 gap-3 p-4">
+            <div class="stat-card border-l-4 border-red-500">
+                <p class="text-xs text-gray-500 uppercase">Ciro</p>
+                <p id="total-ciro" class="text-xl font-bold">0 TL</p>
+            </div>
+            <div class="stat-card border-l-4 border-green-500">
+                <p class="text-xs text-gray-500 uppercase">Nakit</p>
+                <p id="total-nakit" class="text-xl font-bold">0 TL</p>
+            </div>
+            <div class="stat-card border-l-4 border-blue-500">
+                <p class="text-xs text-gray-500 uppercase">Kart</p>
+                <p id="total-kart" class="text-xl font-bold">0 TL</p>
+            </div>
+            <div class="stat-card border-l-4 border-orange-500">
+                <p class="text-xs text-gray-500 uppercase">Adet</p>
+                <p id="total-adet" class="text-xl font-bold">0</p>
+            </div>
+            <button onclick="logout()" class="col-span-2 bg-gray-200 p-2 rounded-xl text-sm font-semibold">Çıkış Yap</button>
+        </div>
+
+        <div class="px-4 relative">
+            <div id="map"></div>
+            <div class="absolute bottom-4 left-8 z-[1000] bg-white p-2 rounded shadow text-xs">
+                📍 Konum seçmek için haritaya dokun
+            </div>
+        </div>
+
+        <div id="admin-table" class="hidden p-4 mt-4">
+            <h2 class="font-bold text-lg mb-2">Restoran Bazlı Özetler</h2>
+            <div class="overflow-x-auto bg-white rounded-xl shadow">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="p-3">Restoran</th>
+                            <th class="p-3">Sipariş</th>
+                            <th class="p-3">Toplam</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-summary-body"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <div id="map"></div>
-
-    <div id="admin-panel">
-        <h4 style="margin:0 0 10px 0">Restoran Özetleri</h4>
-        <table>
-            <thead><tr><th>Dükkan</th><th>Sip.</th><th>Toplam Ciro</th></tr></thead>
-            <tbody id="admin-tbody"></tbody>
-        </table>
-    </div>
-
-    <div class="overlay" id="overlay"></div>
-    <div class="modal" id="order-modal">
-        <h4 style="margin:0">Yeni Sipariş</h4>
-        <input type="number" id="orderPrice" placeholder="Tutar (TL)">
-        <select id="orderPay">
-            <option value="Nakit">Nakit</option>
-            <option value="Kredi Kartı">Kredi Kartı</option>
-            <option value="Online">Online</option>
-        </select>
-        <select id="orderSource">
-            <option value="Manuel">Dükkan Siparişi</option>
-            <option value="Yemeksepeti">Yemeksepeti</option>
-            <option value="Getir">Getir</option>
-            <option value="Trendyol">Trendyol Go</option>
-        </select>
-        <button class="btn-add" onclick="saveOrder()">KAYDET</button>
-        <button onclick="closeModal()" style="background:#eee; border:none;">İptal</button>
-    </div>
-
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
+        // Senin Firebase Yapılandırman
         const firebaseConfig = {
-            apiKey: "AIzaSyAdoBPDNNfgW8AZxpR3-pUjH_M6_7D-X_U",
+            apiKey: "AIzaSyCi...",
             authDomain: "wpyonsip-6bbb5.firebaseapp.com",
             projectId: "wpyonsip-6bbb5",
-            storageBucket: "wpyonsip-6bbb5.firebasestorage.app",
-            messagingSenderId: "478685413866",
-            appId: "1:478685413866:web:86a86e92c6086e3f53831a"
+            storageBucket: "wpyonsip-6bbb5.appspot.com",
+            messagingSenderId: "338804071850",
+            appId: "1:338804071850:web:138a2e5d590403756b66e3"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let currentRes = "", isAdmin = false, map, markers = [], tempCoords = null;
+        let map, userRole = '', currentRest = '';
+        const markers = {};
 
-        function login() {
-            const name = document.getElementById('resName').value.trim();
-            const pass = document.getElementById('resPass').value;
-            if(name === "admin" && pass === "1234") { isAdmin = true; currentRes = "Admin"; document.getElementById('admin-panel').style.display='block'; }
-            else if(name) { currentRes = name; } else return;
-            document.getElementById('auth-screen').style.display='none';
-            document.getElementById('stats-panel').style.display='grid';
-            initApp();
+        function handleLogin() {
+            const user = document.getElementById('username').value.trim();
+            if(!user) return alert("Lütfen isim girin");
+
+            userRole = (user.toLowerCase() === 'admin') ? 'admin' : 'restoran';
+            currentRest = user;
+            
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-panel').classList.remove('hidden');
+            if(userRole === 'admin') document.getElementById('admin-table').classList.remove('hidden');
+
+            initMap();
+            loadOrders();
         }
 
-        function initApp() {
-            map = L.map('map').setView([39.93, 32.85], 13);
+        function initMap() {
+            map = L.map('map').setView([39.9334, 32.8597], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-            let q = db.collection("orders");
-            if(!isAdmin) q = q.where("restaurant", "==", currentRes);
+            map.on('click', function(e) {
+                if(userRole === 'admin') return;
+                
+                const tutar = prompt("Sipariş Tutarı (TL):", "150");
+                if(!tutar) return;
 
-            q.onSnapshot(snap => {
-                let s = { t:0, n:0, k:0, o:0, c:0 }, resList = {};
-                markers.forEach(m => map.removeLayer(m));
-                markers = [];
+                const tip = prompt("Ödeme Tipi (Nakit/Kart/Online):", "Nakit");
+                const platform = prompt("Kaynak (Getir/Yemeksepeti/Elden):", "Elden");
 
-                snap.forEach(doc => {
-                    const d = doc.data(); const p = parseFloat(d.price) || 0;
-                    s.c++; s.t += p;
-                    if(d.pay === "Nakit") s.n += p;
-                    if(d.pay === "Kredi Kartı") s.k += p;
-                    if(d.pay === "Online") s.o += p;
+                db.collection("orders").add({
+                    restoran: currentRest,
+                    tutar: parseFloat(tutar),
+                    tip: tip,
+                    kaynak: platform,
+                    lat: e.latlng.lat,
+                    lng: e.latlng.lng,
+                    tarih: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+        }
 
-                    if(isAdmin) {
-                        if(!resList[d.restaurant]) resList[d.restaurant] = { c:0, t:0 };
-                        resList[d.restaurant].c++; resList[d.restaurant].t += p;
+        function loadOrders() {
+            db.collection("orders").orderBy("tarih", "desc").onSnapshot(snapshot => {
+                let stats = { ciro:0, nakit:0, kart:0, adet:0 };
+                let restSummary = {};
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // Admin her şeyi, restoran sadece kendini görür
+                    if(userRole === 'admin' || data.restoran === currentRest) {
+                        stats.ciro += data.tutar;
+                        stats.adet++;
+                        if(data.tip === 'Nakit') stats.nakit += data.tutar;
+                        if(data.tip === 'Kart') stats.kart += data.tutar;
+
+                        // Haritada Göster
+                        const pos = `${data.lat},${data.lng}`;
+                        if(!markers[doc.id]) {
+                            const googleMapsUrl = `https://www.google.com/maps?q=${data.lat},${data.lng}`;
+                            const waMessage = encodeURIComponent(`Sipariş Var! \nRestoran: ${data.restoran}\nTutar: ${data.tutar} TL\nKonum: ${googleMapsUrl}`);
+                            
+                            const popupContent = `
+                                <b>${data.restoran}</b><br>
+                                Tutar: ${data.tutar} TL<br>
+                                Tip: ${data.tip}<br>
+                                <a href="https://wa.me/?text=${waMessage}" target="_blank" class="whatsapp-btn">Kuryeye WhatsApp At</a>
+                            `;
+
+                            markers[doc.id] = L.circleMarker([data.lat, data.lng], {
+                                color: 'blue', radius: 10, fillOpacity: 0.6
+                            }).addTo(map).bindPopup(popupContent);
+                        }
                     }
 
-                    const m = L.circleMarker([d.lat, d.lng], {radius:7, color: d.source=="Getir"?"purple":d.source=="Yemeksepeti"?"pink":"blue"}).addTo(map)
-                        .bindPopup(`${d.restaurant}<br>${p} TL - ${d.pay}`);
-                    markers.push(m);
+                    // Admin Tablosu İçin Veri Topla
+                    if(!restSummary[data.restoran]) restSummary[data.restoran] = { s:0, t:0 };
+                    restSummary[data.restoran].s++;
+                    restSummary[data.restoran].t += data.tutar;
                 });
 
-                document.getElementById('st-total').innerText = s.t+" TL";
-                document.getElementById('st-cash').innerText = s.n+" TL";
-                document.getElementById('st-card').innerText = s.k+" TL";
-                document.getElementById('st-online').innerText = s.o+" TL";
-                document.getElementById('st-count').innerText = s.c;
+                // Ekranı Güncelle
+                document.getElementById('total-ciro').innerText = stats.ciro + " TL";
+                document.getElementById('total-nakit').innerText = stats.nakit + " TL";
+                document.getElementById('total-kart').innerText = stats.kart + " TL";
+                document.getElementById('total-adet').innerText = stats.adet;
 
-                if(isAdmin) {
-                    const tb = document.getElementById('admin-tbody'); tb.innerHTML = "";
-                    for(let r in resList) tb.innerHTML += `<tr><td>${r}</td><td>${resList[r].c}</td><td>${resList[r].t} TL</td></tr>`;
+                // Tabloyu Güncelle (Admin)
+                if(userRole === 'admin') {
+                    let html = '';
+                    for(let r in restSummary) {
+                        html += `<tr><td class="p-3">${r}</td><td class="p-3">${restSummary[r].s}</td><td class="p-3 font-bold">${restSummary[r].t} TL</td></tr>`;
+                    }
+                    document.getElementById('admin-summary-body').innerHTML = html;
                 }
             });
-
-            map.on('click', e => { if(isAdmin) return; tempCoords = e.latlng; document.getElementById('order-modal').style.display='block'; document.getElementById('overlay').style.display='block'; });
         }
 
-        function saveOrder() {
-            const p = document.getElementById('orderPrice').value;
-            const pay = document.getElementById('orderPay').value;
-            const src = document.getElementById('orderSource').value;
-            if(!p) return;
-            db.collection("orders").add({ restaurant: currentRes, price: p, pay: pay, source: src, lat: tempCoords.lat, lng: tempCoords.lng, time: Date.now() });
-            closeModal();
-        }
-
-        function closeModal() { document.getElementById('order-modal').style.display='none'; document.getElementById('overlay').style.display='none'; }
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
