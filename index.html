@@ -3,62 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Düzce Lojistik Operasyon Merkezi</title>
+    <title>Düzce Lojistik Operasyon Merkezi - Admin Pro</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 45vh; width: 100%; border-radius: 20px; z-index: 10 !important; border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .admin-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; border-left: 6px solid #1e40af; }
-        .rest-card { background: white; border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; }
-        .btn-cancel { background-color: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: bold; }
-        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 10px; border-radius: 12px; font-weight: bold; display: block; text-align: center; margin-top: 8px; text-decoration: none; font-size: 12px; }
-        #login-screen { position: fixed; inset: 0; background: #1e40af; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        #map { height: 50vh; width: 100%; border-radius: 24px; z-index: 10; border: 5px solid white; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .admin-order-card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 12px; border-left: 8px solid #1d4ed8; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .restoran-dot { background: #1d4ed8; border: 2px solid white; border-radius: 50%; height: 12px; width: 12px; display: inline-block; }
+        .whatsapp-btn { background-color: #25D366; color: white !important; padding: 10px; border-radius: 12px; font-weight: bold; display: block; text-align: center; margin-top: 10px; text-decoration: none; font-size: 13px; }
+        #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at center, #1e40af, #1e3a8a); z-index: 9999; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-100">
 
     <div id="login-screen">
-        <div class="w-full max-w-sm p-8 bg-white rounded-3xl shadow-2xl text-center">
-            <h1 class="text-2xl font-black text-blue-800 mb-1">DÜZCE LOJİSTİK</h1>
-            <p class="text-slate-400 text-[10px] mb-6 font-bold tracking-widest uppercase">Operasyon Merkezi</p>
-            <select id="rest-select" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 font-bold outline-none">
+        <div class="w-full max-w-sm p-10 bg-white rounded-[40px] shadow-2xl text-center">
+            <h1 class="text-3xl font-black text-blue-900 mb-2">DÜZCE LOJİSTİK</h1>
+            <p class="text-slate-400 text-[10px] font-bold tracking-[0.2em] mb-8">OPERASYON MERKEZİ</p>
+            <select id="rest-select" class="w-full p-5 border-2 border-slate-100 rounded-2xl mb-5 font-bold outline-none focus:border-blue-600 appearance-none bg-slate-50">
                 <option value="">Giriş Türü Seçin</option>
-                <option value="admin">ADMİN (TÜM YETKİLER)</option>
+                <option value="admin">ADMİN (TÜM SİSTEM)</option>
                 <option value="Merkez Döner">Merkez Döner</option>
                 <option value="Krempark Pizza">Krempark Pizza</option>
                 <option value="Spor Sokak Kebap">Spor Sokak Kebap</option>
             </select>
-            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black hover:bg-blue-800 transition-all">SİSTEME GİRİŞ</button>
+            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-5 rounded-2xl font-black hover:bg-blue-800 shadow-lg shadow-blue-200 transition-all">SİSTEME BAĞLAN</button>
         </div>
     </div>
 
     <div id="main-panel" class="hidden">
-        <div class="p-5 bg-white shadow-sm flex justify-between items-center border-b">
+        <div class="p-6 bg-white flex justify-between items-center border-b">
             <div>
-                <h2 id="panel-title" class="text-lg font-black text-blue-900">Panel</h2>
-                <span id="role-badge" class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase"></span>
+                <h2 id="panel-title" class="text-xl font-black text-blue-900">Panel</h2>
+                <div class="flex items-center gap-2">
+                    <span id="role-badge" class="text-[10px] font-black px-2 py-1 rounded bg-blue-600 text-white uppercase tracking-tighter"></span>
+                </div>
             </div>
-            <button onclick="location.reload()" class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold">Çıkış</button>
+            <button onclick="location.reload()" class="bg-slate-100 p-3 rounded-2xl"><img src="https://img.icons8.com/ios-filled/24/1e3a8a/logout-rounded.png" width="20"/></button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 p-4">
-            <div class="bg-white p-3 rounded-xl shadow-sm border-t-4 border-blue-600">
-                <p class="text-[9px] text-slate-400 font-bold uppercase">Ciro</p>
-                <p id="total-ciro" class="text-sm font-black text-blue-800">0 TL</p>
+        <div class="flex gap-3 p-6 overflow-x-auto no-scrollbar">
+            <div class="min-w-[120px] bg-white p-4 rounded-2xl shadow-sm border-b-4 border-blue-600">
+                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Ciro</p>
+                <p id="total-ciro" class="text-lg font-black text-blue-900">0 TL</p>
             </div>
-            <div id="extra-stat" class="bg-white p-3 rounded-xl shadow-sm border-t-4 border-emerald-500">
-                <p id="stat-label" class="text-[9px] text-slate-400 font-bold uppercase">Sipariş</p>
-                <p id="stat-value" class="text-sm font-black text-emerald-700">0</p>
+            <div class="min-w-[120px] bg-white p-4 rounded-2xl shadow-sm border-b-4 border-emerald-500">
+                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Aktif Sip.</p>
+                <p id="total-adet" class="text-lg font-black text-emerald-700">0</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-t-4 border-red-500">
-                <p class="text-[9px] text-slate-400 font-bold uppercase">İptal</p>
-                <p id="total-iptal" class="text-sm font-black text-red-600">0</p>
+            <div class="min-w-[120px] bg-white p-4 rounded-2xl shadow-sm border-b-4 border-red-500">
+                <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">İptal</p>
+                <p id="total-iptal" class="text-lg font-black text-red-600">0</p>
             </div>
         </div>
 
-        <div class="px-4 mb-4"><div id="map"></div></div>
+        <div class="px-6 mb-6"><div id="map"></div></div>
 
-        <div id="content-area" class="px-4 pb-10"></div>
+        <div id="content-area" class="px-6 pb-20"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -67,7 +68,7 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCi...",
+            apiKey: "AIzaSyCi...", 
             authDomain: "wpyonsip-6bbb5.firebaseapp.com",
             projectId: "wpyonsip-6bbb5",
             storageBucket: "wpyonsip-6bbb5.appspot.com",
@@ -79,90 +80,96 @@
 
         let map, userRole, currentRest;
 
+        // Düzce'deki Sabit Restoran Konumları
+        const sabitRestoranlar = [
+            {isim: "Merkez Döner", lat: 40.8425, lng: 31.1590},
+            {isim: "Krempark Pizza", lat: 40.8400, lng: 31.1550},
+            {isim: "Spor Sokak Kebap", lat: 40.8415, lng: 31.1610}
+        ];
+
         function handleLogin() {
             currentRest = document.getElementById('rest-select').value;
-            if(!currentRest) return alert("Seçim Yapın!");
+            if(!currentRest) return alert("Giriş türü seçiniz!");
             userRole = (currentRest === 'admin') ? 'admin' : 'restoran';
+            
             document.getElementById('login-screen').remove();
             document.getElementById('main-panel').classList.remove('hidden');
             document.getElementById('panel-title').innerText = currentRest.toUpperCase();
-            document.getElementById('role-badge').innerText = userRole === 'admin' ? "OPERASYON MERKEZİ" : "RESTORAN PANELİ";
-            
-            if(userRole === 'restoran') {
-                document.getElementById('stat-label').innerText = "ÖDEME ÖZETİ";
-            }
+            document.getElementById('role-badge').innerText = userRole === 'admin' ? "Merkez Kontrol" : "Şube Erişimi";
 
             initMap();
             loadOrders();
         }
 
         function initMap() {
-            map = L.map('map').setView([40.8438, 31.1565], 13);
+            map = L.map('map').setView([40.8438, 31.1565], 14);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            // Admin girişinde tüm restoranları haritaya işaretle
+            if(userRole === 'admin') {
+                sabitRestoranlar.forEach(rest => {
+                    L.marker([rest.lat, rest.lng], {
+                        icon: L.divIcon({className: 'restoran-dot', iconSize: [12, 12]})
+                    }).addTo(map).bindPopup(`<b>${rest.isim} (Şube)</b>`);
+                });
+            }
+
             map.on('click', (e) => {
                 if(userRole === 'admin') return;
-                const tutar = prompt("Tutar:", "100");
-                const odeme = prompt("Ödeme Tipi (Nakit/Kart):", "Nakit");
-                if(tutar) db.collection("orders").add({
-                    restoran: currentRest, tutar: parseFloat(tutar), odeme: odeme,
-                    lat: e.latlng.lat, lng: e.latlng.lng, status: 'aktif',
-                    tarih: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                const tutar = prompt("Tutar:", "120");
+                const odeme = prompt("Ödeme Yöntemi (Nakit/Kart):", "Kart");
+                if(tutar) {
+                    db.collection("orders").add({
+                        restoran: currentRest, tutar: parseFloat(tutar), odeme: odeme,
+                        lat: e.latlng.lat, lng: e.latlng.lng, status: 'aktif',
+                        tarih: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
             });
-        }
-
-        function updateStatus(id, newStatus) {
-            db.collection("orders").doc(id).update({ status: newStatus });
         }
 
         function loadOrders() {
             db.collection("orders").orderBy("tarih", "desc").onSnapshot(snapshot => {
-                let stats = { ciro: 0, adet: 0, iptal: 0, nakit: 0, kart: 0 };
-                let html = '';
+                let stats = { c: 0, a: 0, i: 0 };
+                let listHtml = '';
                 
+                // Haritayı temizle (sadece sipariş pinleri için)
+                map.eachLayer((layer) => { if (layer instanceof L.CircleMarker) map.removeLayer(layer); });
+
                 snapshot.forEach(doc => {
                     const d = doc.data();
                     if(userRole === 'admin' || d.restoran === currentRest) {
                         if(d.status === 'aktif') {
-                            stats.ciro += d.tutar; stats.adet++;
-                            if(d.odeme === 'Nakit') stats.nakit += d.tutar; else stats.kart += d.tutar;
-
-                            const waMsg = encodeURIComponent(`Operasyon!\nŞube: ${d.restoran}\nTutar: ${d.tutar} TL\nKonum: http://googleusercontent.com/maps.google.com/9{d.lat},${d.lng}`);
+                            stats.c += d.tutar; stats.a++;
                             
+                            // Haritaya Sipariş Pini Ekle
+                            L.circleMarker([d.lat, d.lng], {color: 'red', radius: 10, weight: 3, fillOpacity: 0.7}).addTo(map)
+                             .bindPopup(`<b>${d.restoran}</b><br>${d.tutar} TL`);
+
                             if(userRole === 'admin') {
-                                html += `<div class="admin-card shadow-sm">
-                                    <div class="flex justify-between font-black text-xs text-blue-700 mb-1"><span>${d.restoran}</span><span>${d.tutar} TL</span></div>
-                                    <p class="text-[9px] text-slate-500 mb-2">Ödeme: ${d.odeme} | Konum: ${d.lat.toFixed(3)},${d.lng.toFixed(3)}</p>
-                                    <div class="flex gap-2">
-                                        <a href="https://wa.me/?text=${waMsg}" class="whatsapp-btn flex-1 m-0">KURYE ATA</a>
-                                        <button onclick="updateStatus('${doc.id}', 'iptal')" class="btn-cancel">İPTAL</button>
-                                    </div>
-                                </div>`;
-                            } else {
-                                html += `<div class="rest-card">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs font-bold text-slate-600">${d.odeme} Ödeme - ${d.tutar} TL</span>
-                                        <button onclick="updateStatus('${doc.id}', 'iptal')" class="btn-cancel">İPTAL ET</button>
-                                    </div>
-                                </div>`;
+                                listHtml += `
+                                    <div class="admin-order-card">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-black text-blue-700 text-sm underline">${d.restoran}</span>
+                                            <span class="bg-blue-50 text-blue-600 text-[10px] px-2 py-1 rounded-lg font-bold">${d.odeme}</span>
+                                        </div>
+                                        <div class="text-lg font-black mb-2">${d.tutar} TL</div>
+                                        <div class="flex gap-2">
+                                            <a href="https://wa.me/?text=Sipariş Detayı: ${d.restoran} - ${d.tutar}TL" class="whatsapp-btn flex-1 m-0">KURYE YÖNLENDİR</a>
+                                            <button onclick="db.collection('orders').doc('${doc.id}').update({status:'iptal'})" class="bg-red-50 text-red-600 px-3 rounded-xl font-bold text-[10px]">İPTAL</button>
+                                        </div>
+                                    </div>`;
                             }
-                            L.circleMarker([d.lat, d.lng], {color: '#1e40af', radius: 8}).addTo(map);
                         } else {
-                            stats.iptal++;
+                            stats.i++;
                         }
                     }
                 });
 
-                document.getElementById('total-ciro').innerText = stats.ciro + " TL";
-                document.getElementById('total-iptal').innerText = stats.iptal;
-                
-                if(userRole === 'admin') {
-                    document.getElementById('stat-value').innerText = stats.adet;
-                    document.getElementById('content-area').innerHTML = `<h3 class="font-black text-blue-800 text-xs mb-3 italic">CANLI ŞUBE TAKİBİ</h3>` + html;
-                } else {
-                    document.getElementById('stat-value').innerText = `N:${stats.nakit} / K:${stats.kart}`;
-                    document.getElementById('content-area').innerHTML = `<h3 class="font-black text-slate-600 text-xs mb-3 italic">GÜNLÜK SATIŞ LİSTESİ</h3>` + html;
-                }
+                document.getElementById('total-ciro').innerText = stats.c + " TL";
+                document.getElementById('total-adet').innerText = stats.a;
+                document.getElementById('total-iptal').innerText = stats.i;
+                if(userRole === 'admin') document.getElementById('content-area').innerHTML = listHtml;
             });
         }
     </script>
