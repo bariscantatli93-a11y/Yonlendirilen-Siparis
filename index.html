@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -5,21 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Düzce Lojistik Operasyon Merkezi</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 35vh; width: 100%; border-radius: 20px; border: 3px solid white; z-index: 1; }
-        .wa-btn { background: #25D366; color: white !important; padding: 6px 12px; border-radius: 10px; font-weight: bold; font-size: 11px; display: inline-block; }
+        #map { height: 40vh; width: 100%; border-radius: 20px; border: 3px solid white; margin-bottom: 16px; }
+        .wa-btn { background: #25D366; color: white; padding: 8px 16px; border-radius: 12px; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .wa-btn:hover { background: #128C7E; transform: scale(1.05); }
         .login-bg { background: #1e40af; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .order-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; border-left: 6px solid #1e40af; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .order-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border-left: 6px solid #1e40af; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .status-badge { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
 
+    <!-- Login Ekranı -->
     <div id="login-screen" class="login-bg fixed inset-0 z-[9999]">
         <div class="w-full max-w-sm p-10 bg-white rounded-[40px] shadow-2xl text-center">
-            <h1 class="text-2xl font-black text-blue-900 mb-2 italic">DÜZCE LOJİSTİK</h1>
-            <p class="text-[9px] text-slate-400 font-bold tracking-widest uppercase mb-8 underline">Operasyon Merkezi</p>
-            <select id="role-select" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 font-bold outline-none text-center bg-slate-50">
+            <h1 class="text-3xl font-black text-blue-900 mb-2 italic">DÜZCE LOJİSTİK</h1>
+            <p class="text-sm text-slate-500 font-bold tracking-widest uppercase mb-8">Operasyon Merkezi</p>
+            <select id="role-select" class="w-full p-4 border-2 border-slate-200 rounded-2xl mb-6 font-bold outline-none text-center bg-white text-slate-700">
                 <option value="">Giriş Türü</option>
                 <option value="admin">ADMİN (MERKEZ)</option>
                 <option value="Pizza">PİZZA ŞUBESİ</option>
@@ -30,14 +35,116 @@
         </div>
     </div>
 
-    <div id="main-panel" class="hidden">
-        <header class="p-5 bg-white shadow-sm flex justify-between items-center border-b sticky top-0 z-50">
-            <h2 id="display-title" class="font-black text-blue-900 uppercase italic">Panel</h2>
-            <button onclick="location.reload()" class="text-[10px] font-black text-red-500 bg-red-50 px-3 py-1 rounded-full">ÇIKIŞ</button>
+    <!-- Ana Panel -->
+    <div id="main-panel" class="hidden p-4">
+        <header class="p-5 bg-white shadow-sm flex justify-between items-center border-b sticky top-0 z-50 mb-4">
+            <h2 id="display-title" class="font-black text-blue-900 uppercase italic text-xl">Panel</h2>
+            <button onclick="location.reload()" class="text-sm font-black text-red-600 bg-red-50 px-4 py-2 rounded-full">ÇIKIŞ</button>
         </header>
 
-        <div class="grid grid-cols-2 gap-3 p-4">
-            <div class="bg-white p-4 rounded-3xl shadow-sm border-b-4 border-blue-600">
-                <p class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Toplam Hasılat</p>
-                <p id="total-ciro" class="text-lg font-black text-blue-900">0
-                    
+        <!-- Harita -->
+        <div id="map"></div>
+
+        <!-- Toplam Hasılat (Pizza için örnek) -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-blue-600 mb-6">
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Toplam Hasılat (Pizza Şubesi)</p>
+            <p id="total-ciro" class="text-4xl font-black text-blue-900 mt-2">0 TL</p>
+        </div>
+
+        <!-- Sipariş Kartları -->
+        <div id="orders-container" class="space-y-4"></div>
+    </div>
+
+    <script>
+        // Harita Başlatma
+        const map = L.map('map').setView([40.839, 31.158], 13); // Düzce merkez
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        // 5 Örnek Pizza Siparişi (gerçekte API'den gelecek)
+        const pizzaOrders = [
+            { id: 1001, adres: "Düzce Merkez Mah. Atatürk Cd. No:45", lat: 40.838, lng: 31.162, tutar: 285, musteri: "Ahmet Bey", kurye: "Kurye1", durum: "Yolda", whatsapp: "+905551234567" },
+            { id: 1002, adres: "Aziziye Mah. İnönü Sk. 12", lat: 40.842, lng: 31.155, tutar: 420, musteri: "Ayşe Hanım", kurye: "Kurye2", durum: "Hazırlanıyor", whatsapp: "+905559876543" },
+            { id: 1003, adres: "Camikebir Mah. Cumhuriyet Blv.", lat: 40.835, lng: 31.170, tutar: 180, musteri: "Mehmet", kurye: "Kurye3", durum: "Teslim Edildi", whatsapp: "+905551112233" },
+            { id: 1004, adres: "Kültür Mah. 19 Mayıs Sk.", lat: 40.845, lng: 31.148, tutar: 350, musteri: "Fatma", kurye: "Kurye1", durum: "Yolda", whatsapp: "+905551234567" },
+            { id: 1005, adres: "Yalı Mah. Sahil Yolu 8", lat: 40.830, lng: 31.175, tutar: 510, musteri: "Ali", kurye: "Kurye2", durum: "Hazırlanıyor", whatsapp: "+905559876543" }
+        ];
+
+        // Login İşlevi
+        function handleLogin() {
+            const role = document.getElementById('role-select').value;
+            if (!role) {
+                alert("Giriş türü seçin!");
+                return;
+            }
+
+            localStorage.setItem('userRole', role);
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-panel').classList.remove('hidden');
+            document.getElementById('display-title').innerText = role.toUpperCase() + " PANELİ";
+
+            loadOrders(role);
+        }
+
+        // Siparişleri Yükle (rol bazlı filtre)
+        function loadOrders(role) {
+            const container = document.getElementById('orders-container');
+            container.innerHTML = '';
+
+            let filteredOrders = pizzaOrders; // Şimdilik sadece pizza
+            if (role !== 'admin' && role !== 'Pizza') {
+                filteredOrders = []; // Diğer şubeler için boş (sonra eklenir)
+            }
+
+            let total = 0;
+            filteredOrders.forEach(order => {
+                total += order.tutar;
+
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="font-black text-lg text-blue-900">Sipariş #${order.id}</p>
+                            <p class="text-sm text-slate-600">${order.adres}</p>
+                        </div>
+                        <span class="status-badge ${order.durum === 'Teslim Edildi' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                            ${order.durum}
+                        </span>
+                    </div>
+                    <p class="text-sm mb-2"><strong>Müşteri:</strong> ${order.musteri}</p>
+                    <p class="text-sm mb-3"><strong>Kurye:</strong> ${order.kurye} | Tutar: ${order.tutar} TL</p>
+                    <button class="wa-btn" onclick="sendWhatsApp('${order.whatsapp}', ${order.lat}, ${order.lng}, ${order.id})">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.93 14.42c-.38.38-1.12.74-1.65.82-.53.08-1.24.12-2.07-.09-.83-.21-1.53-.78-2.12-1.62-.59-.84-.98-1.91-1.08-2.76-.1-.85.09-1.61.57-2.14.48-.53 1.17-.82 1.92-.82h.24c.29 0 .57.06.83.18.26.12.49.3.68.52l.32.43c.19.25.27.56.21.87-.06.31-.25.58-.54.75l-.69.41c-.07.04-.1.13-.07.2l.29.78c.03.08.12.13.21.1l.78-.29c.07-.03.15 0 .2.07l.43.32c.22.17.4.4.52.66.12.26.18.54.18.83v.24c0 .75-.29 1.44-.82 1.92z"/></svg>
+                        Kuryeye Gönder
+                    </button>
+                `;
+                container.appendChild(card);
+
+                // Haritaya pin ekle
+                L.marker([order.lat, order.lng]).addTo(map)
+                    .bindPopup(`Sipariş #\( {order.id}<br> \){order.adres}<br>${order.musteri}`);
+            });
+
+            document.getElementById('total-ciro').innerText = total + " TL";
+        }
+
+        // WhatsApp'a manuel mesaj + konum linki aç
+        function sendWhatsApp(phone, lat, lng, orderId) {
+            const message = encodeURIComponent(
+                `Yeni Sipariş #${orderId}\nAdres: (konum aşağıda)\nLütfen hemen teslim edin!`
+            );
+            const locationLink = `https://www.google.com/maps?q=\( {lat}, \){lng}`;
+            const fullMsg = `${message}\nKonum: ${locationLink}`;
+
+            const whatsappUrl = `https://wa.me/\( {phone}?text= \){fullMsg}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Sayfa yüklendiğinde login ekranı açık kalsın
+        // Eğer önceden giriş yapılmışsa otomatik yükle (isteğe bağlı)
+        // window.onload = () => { if (localStorage.getItem('userRole')) handleLogin(); };
+    </script>
+</body>
+</html>
