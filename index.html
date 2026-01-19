@@ -8,28 +8,32 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 40vh; width: 100%; border-radius: 12px; border: 2px solid #ddd; margin-bottom: 16px; }
-        .wa-btn { background: #25D366; color: white; padding: 10px 16px; border-radius: 10px; font-weight: bold; text-decoration: none; display: inline-block; }
-        .wa-btn.disabled { background: #ccc; opacity: 0.6; pointer-events: none; }
-        .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 5px solid #1e40af; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .status { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; }
+        #map { height: 40vh; width: 100%; border-radius: 16px; border: 2px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .wa-btn { background: #25D366; color: white; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+        .wa-btn:hover { background: #1da851; }
+        .wa-btn.disabled { background: #cbd5e1; cursor: not-allowed; opacity: 0.7; pointer-events: none; }
+        .card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-4px); }
+        .status { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: bold; }
         .hazir { background: #fef3c7; color: #92400e; }
         .yolda { background: #fefce8; color: #854d0e; }
         .teslim { background: #dcfce7; color: #166534; }
+        h1 { font-size: 1.8rem; font-weight: 900; color: #1e40af; text-align: center; margin-bottom: 16px; }
     </style>
 </head>
-<body class="bg-slate-100 p-4">
+<body>
 
-    <h1 class="text-3xl font-black text-blue-900 mb-4 text-center">DÜZCE LOJİSTİK PANEL</h1>
+    <h1>DÜZCE LOJİSTİK OPERASYON MERKEZİ</h1>
 
-    <div id="map" class="mb-6"></div>
+    <div id="map"></div>
 
-    <div class="bg-white p-6 rounded-xl shadow mb-6 border-l-4 border-blue-600">
-        <p class="text-sm text-gray-600">Toplam Hasılat (Pizza)</p>
-        <p id="ciro" class="text-4xl font-bold text-blue-900">1845 TL</p>
+    <div class="bg-white p-6 rounded-2xl shadow-lg mb-6 border-l-4 border-blue-600 mx-4">
+        <p class="text-sm font-bold text-slate-600 uppercase tracking-wide">Toplam Hasılat (Pizza Şubesi)</p>
+        <p id="ciro" class="text-4xl font-black text-blue-900 mt-1">1745 TL</p>
     </div>
 
-    <div id="kartlar"></div>
+    <div id="kartlar" class="px-4"></div>
 
     <script>
         var map = L.map('map').setView([40.839, 31.158], 13);
@@ -44,6 +48,8 @@
         ];
 
         var total = 0;
+        var markers = [];
+
         siparisler.forEach(s => {
             total += s.tutar;
 
@@ -55,14 +61,14 @@
             var card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div class="flex justify-between mb-2">
-                    <p class="font-bold text-lg">Sipariş #${s.id}</p>
+                <div class="flex justify-between items-center mb-3">
+                    <p class="font-bold text-lg text-blue-900">Sipariş #${s.id}</p>
                     <span class="status \( {statusClass}"> \){s.durum}</span>
                 </div>
-                <p class="text-sm mb-1"><strong>Adres:</strong> ${s.adres}</p>
-                <p class="text-sm mb-1"><strong>Müşteri:</strong> ${s.musteri}</p>
-                <p class="text-sm mb-3"><strong>Kurye:</strong> ${s.kurye} | ${s.tutar} TL</p>
-                <a href="https://wa.me/\( {s.telefon}?text=Sipariş%20# \){s.id}%0AMüşteri:%20\( {encodeURIComponent(s.musteri)}%0ATutar:%20 \){s.tutar}%20TL%0AAdres:%20\( {encodeURIComponent(s.adres)}%0AKonum:%20https://www.google.com/maps?q= \){s.lat},${s.lng}" target="_blank" class="wa-btn ${s.durum === 'Teslim Edildi' ? 'disabled' : ''}">
+                <p class="text-sm mb-2"><strong>Adres:</strong> ${s.adres}</p>
+                <p class="text-sm mb-2"><strong>Müşteri:</strong> ${s.musteri}</p>
+                <p class="text-sm mb-3"><strong>Kurye:</strong> \( {s.kurye} | <strong> \){s.tutar} TL</strong></p>
+                <a href="https://wa.me/\( {s.telefon}?text= \){encodeURIComponent(`Yeni Sipariş #${s.id}\nMüşteri: ${s.musteri}\nTutar: ${s.tutar} TL\nAdres: \( {s.adres}\nKonum: https://www.google.com/maps?q= \){s.lat},${s.lng}`)}" target="_blank" class="wa-btn ${s.durum === 'Teslim Edildi' ? 'disabled' : ''}">
                     WhatsApp Gönder
                 </a>
             `;
@@ -71,12 +77,13 @@
             var color = s.durum === 'Teslim Edildi' ? '#22c55e' : '#3b82f6';
             var marker = L.marker([s.lat, s.lng], {
                 icon: L.divIcon({
-                    html: `<div style="background:${color};width:20px;height:20px;border-radius:50%;border:3px solid white;"></div>`,
+                    html: `<div style="background:${color};width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,
                     className: '',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
                 })
-            }).addTo(map).bindPopup(`#${s.id} - \( {s.adres}<br> \){s.musteri} - \( {s.tutar} TL<br> \){s.kurye} - ${s.durum}`);
+            }).addTo(map).bindPopup(`<b>Sipariş #\( {s.id}</b><br> \){s.adres}<br>Müşteri: ${s.musteri}<br>Tutar: ${s.tutar} TL<br>Kurye: ${s.kurye}<br>Durum: ${s.durum}`);
+            markers.push(marker);
         });
 
         document.getElementById('ciro').innerText = total + ' TL';
