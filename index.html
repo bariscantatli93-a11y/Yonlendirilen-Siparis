@@ -23,7 +23,7 @@
 <body class="bg-slate-50 text-slate-900 font-sans">
 
     <!-- Login Ekranı -->
-    <div id="login-screen" class="login-bg fixed inset-0 z-[9999]">
+    <div id="login-screen" class="login-bg fixed inset-0 z-[9999] flex items-center justify-center">
         <div class="w-full max-w-sm p-10 bg-white rounded-[40px] shadow-2xl text-center">
             <h1 class="text-3xl font-black text-blue-900 mb-2 italic">DÜZCE LOJİSTİK</h1>
             <p class="text-sm text-slate-500 font-bold tracking-widest uppercase mb-8">Operasyon Merkezi</p>
@@ -32,7 +32,7 @@
                 <option value="admin">ADMİN (MERKEZ)</option>
                 <option value="Pizza">PİZZA ŞUBESİ</option>
             </select>
-            <button onclick="handleLogin()" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">SİSTEME BAĞLAN</button>
+            <button id="login-btn" class="w-full bg-blue-700 text-white p-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">SİSTEME BAĞLAN</button>
         </div>
     </div>
 
@@ -58,12 +58,11 @@
 
     <script>
         // Harita Başlatma
-        const map = L.map('map').setView([40.839, 31.158], 13); // Düzce merkez
+        const map = L.map('map').setView([40.839, 31.158], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // 5 Örnek Pizza Siparişi
         const pizzaOrders = [
             { id: 1001, adres: "Düzce Merkez Mah. Atatürk Cd. No:45", lat: 40.8385, lng: 31.1620, tutar: 285, musteri: "Ahmet Bey", telefon: "+905551234567", kurye: "Kurye1", durum: "Hazırlanıyor" },
             { id: 1002, adres: "Aziziye Mah. İnönü Sk. 12", lat: 40.8420, lng: 31.1555, tutar: 420, musteri: "Ayşe Hanım", telefon: "+905559876543", kurye: "Kurye2", durum: "Yolda" },
@@ -74,21 +73,22 @@
 
         let markers = [];
 
-        // Login İşlevi
-        function handleLogin() {
+        // Login butonuna event ekle
+        document.getElementById('login-btn').addEventListener('click', function() {
             const role = document.getElementById('role-select').value;
             if (!role) {
                 alert("Giriş türü seçin!");
                 return;
             }
 
-            localStorage.setItem('userRole', role);
-            document.getElementById('login-screen').classList.add('hidden');
+            console.log("Giriş yapıldı, rol:", role); // Test için konsola yaz
+
+            document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-panel').classList.remove('hidden');
             document.getElementById('display-title').innerText = role.toUpperCase() + " PANELİ";
 
             loadOrders(role);
-        }
+        });
 
         // Siparişleri Yükle
         function loadOrders(role) {
@@ -139,7 +139,6 @@
                 `;
                 container.appendChild(card);
 
-                // Harita pin rengi
                 const markerColor = order.durum === 'Teslim Edildi' ? '#22c55e' : '#3b82f6';
                 const marker = L.marker([order.lat, order.lng], {
                     icon: L.divIcon({
