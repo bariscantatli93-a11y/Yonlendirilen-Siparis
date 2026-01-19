@@ -8,102 +8,30 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-        #map { height: 40vh; width: 100%; border-bottom: 2px solid #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        #map { height: 35vh; width: 100%; border-bottom: 2px solid #e2e8f0; }
         .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .hazir { background: #fef3c7; color: #92400e; }
         .yolda { background: #dbeafe; color: #1e40af; }
         .teslim { background: #dcfce7; color: #166534; }
-        .card-shadow { transition: transform 0.2s; }
-        .card-shadow:hover { transform: translateY(-3px); }
+        .kurye-row { border-bottom: 1px solid #f1f5f9; transition: background 0.2s; }
+        .kurye-row:hover { background: #f8fafc; }
     </style>
 </head>
 <body>
 
-    <div class="bg-white p-4 shadow-sm flex justify-between items-center">
+    <div class="bg-white p-4 shadow-sm flex justify-between items-center border-b-4 border-blue-600">
         <div>
             <h1 class="text-xl font-black text-blue-900 leading-none">DÜZCE LOJİSTİK</h1>
-            <p class="text-xs font-bold text-slate-400">OPERASYON MERKEZİ • 2026</p>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Operasyon Merkezi - Kurye Takip</p>
         </div>
         <div class="text-right">
-            <p class="text-[10px] font-bold text-slate-500 uppercase">Toplam Ciro</p>
-            <p id="ciro" class="text-2xl font-black text-blue-600">0 TL</p>
+            <p id="ciro" class="text-2xl font-black text-blue-600 leading-none">0 TL</p>
+            <p class="text-[10px] font-bold text-slate-500 uppercase">GÜNLÜK HASILAT</p>
         </div>
     </div>
 
     <div id="map"></div>
 
-    <div class="flex gap-2 p-4 overflow-x-auto bg-white border-b">
-        <button onclick="renderCards('Tümü')" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">Tümü</button>
-        <button onclick="renderCards('Hazırlanıyor')" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap underline decoration-2">Hazırda</button>
-        <button onclick="renderCards('Yolda')" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">Yolda</button>
-        <button onclick="renderCards('Teslim Edildi')" class="bg-emerald-100 text-emerald-800 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">Biten</button>
-    </div>
 
-    <div id="kartlar" class="p-4 space-y-4 pb-24">
-        </div>
-
-    <script>
-        const siparisler = [
-            { id: 1001, adres: "Atatürk Cd. No:45", lat: 40.8385, lng: 31.1620, tutar: 285, musteri: "Ahmet", telefon: "905551234567", kurye: "K1", durum: "Hazırlanıyor" },
-            { id: 1002, adres: "İnönü Sk. 12", lat: 40.8420, lng: 31.1555, tutar: 420, musteri: "Ayşe", telefon: "905559876543", kurye: "K2", durum: "Yolda" },
-            { id: 1003, adres: "Cumhuriyet Blv.", lat: 40.8350, lng: 31.1700, tutar: 180, musteri: "Mehmet", telefon: "905551112233", kurye: "K3", durum: "Teslim Edildi" },
-            { id: 1004, adres: "19 Mayıs Sk.", lat: 40.8450, lng: 31.1480, tutar: 350, musteri: "Fatma", telefon: "905551234567", kurye: "K1", durum: "Yolda" },
-            { id: 1005, adres: "Sahil Yolu 8", lat: 40.8300, lng: 31.1750, tutar: 510, musteri: "Ali", telefon: "905559876543", kurye: "K2", durum: "Hazırlanıyor" }
-        ];
-
-        let map = L.map('map').setView([40.839, 31.158], 13);
-        L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
-
-        function renderCards(filter = 'Tümü') {
-            const container = document.getElementById('kartlar');
-            container.innerHTML = '';
-            let currentTotal = 0;
-
-            siparisler.forEach(s => {
-                if (filter !== 'Tümü' && s.durum !== filter) return;
-                
-                currentTotal += s.tutar;
-                const statusClass = s.durum === 'Hazırlanıyor' ? 'hazir' : (s.durum === 'Yolda' ? 'yolda' : 'teslim');
-                
-                const card = `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 card-shadow">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-black text-blue-900">#${s.id} - ${s.musteri}</h3>
-                                <p class="text-[11px] text-slate-500 font-bold tracking-tight uppercase">${s.adres}</p>
-                            </div>
-                            <span class="status-badge ${statusClass}">${s.durum}</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-lg font-black text-slate-700">${s.tutar} TL</span>
-                            <div class="flex gap-2">
-                                <a href="https://wa.me/${s.telefon}?text=${encodeURIComponent('Sipariş: '+s.id+'\nAdres: '+s.adres+'\nKonum: https://www.google.com/maps?q='+s.lat+','+s.lng)}" 
-                                   class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors">
-                                   WhatsApp
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += card;
-
-                // Marker Ekleme
-                let markerColor = s.durum === 'Teslim Edildi' ? '#10b981' : (s.durum === 'Yolda' ? '#3b82f6' : '#f59e0b');
-                L.circleMarker([s.lat, s.lng], {
-                    radius: 8,
-                    fillColor: markerColor,
-                    color: "#fff",
-                    weight: 3,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }).addTo(map).bindPopup(`<b>${s.musteri}</b><br>${s.tutar} TL`);
-            });
-
-            document.getElementById('ciro').innerText = currentTotal + ' TL';
-        }
-
-        renderCards();
-    </script>
-</body>
-</html>
+    
