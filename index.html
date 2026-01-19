@@ -8,90 +8,102 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom, #f0f9ff, #e0f2fe); min-height: 100vh; margin: 0; padding: 0; }
-        #map { height: 45vh; width: 100%; border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 24px; overflow: hidden; }
-        .wa-btn { background: #25D366; color: white; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; box-shadow: 0 4px 10px rgba(37,213,102,0.3); }
-        .wa-btn:hover { background: #1da851; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37,213,102,0.4); }
-        .wa-btn.disabled { background: #cbd5e1; box-shadow: none; opacity: 0.7; pointer-events: none; }
-        .card { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 20px; padding: 20px; margin-bottom: 20px; border-left: 6px solid #3b82f6; box-shadow: 0 6px 20px rgba(0,0,0,0.08); transition: all 0.3s; }
-        .card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
-        .status { padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        #map { height: 40vh; width: 100%; border-bottom: 2px solid #e2e8f0; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .hazir { background: #fef3c7; color: #92400e; }
-        .yolda { background: #fefce8; color: #854d0e; }
+        .yolda { background: #dbeafe; color: #1e40af; }
         .teslim { background: #dcfce7; color: #166534; }
-        .header { background: white; padding: 16px; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 10; }
-        .hasilat-box { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 16px; padding: 20px; box-shadow: 0 6px 20px rgba(59,130,246,0.15); }
-        .title { font-size: 1.8rem; font-weight: 900; color: #1e40af; text-align: center; margin: 20px 0 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card-shadow { transition: transform 0.2s; }
+        .card-shadow:hover { transform: translateY(-3px); }
     </style>
 </head>
 <body>
 
-    <div class="title">DÜZCE LOJİSTİK OPERASYON MERKEZİ</div>
+    <div class="bg-white p-4 shadow-sm flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-black text-blue-900 leading-none">DÜZCE LOJİSTİK</h1>
+            <p class="text-xs font-bold text-slate-400">OPERASYON MERKEZİ • 2026</p>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] font-bold text-slate-500 uppercase">Toplam Ciro</p>
+            <p id="ciro" class="text-2xl font-black text-blue-600">0 TL</p>
+        </div>
+    </div>
 
     <div id="map"></div>
 
-    <div class="hasilat-box mx-4 mb-6">
-        <p class="text-sm font-bold text-blue-700 uppercase tracking-wide mb-2">Toplam Hasılat (Pizza Şubesi)</p>
-        <p id="ciro" class="text-4xl font-black text-blue-900">1745 TL</p>
+    <div class="flex gap-2 p-4 overflow-x-auto bg-white border-b">
+        <button onclick="renderCards('Tümü')" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">Tümü</button>
+        <button onclick="renderCards('Hazırlanıyor')" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap underline decoration-2">Hazırda</button>
+        <button onclick="renderCards('Yolda')" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">Yolda</button>
+        <button onclick="renderCards('Teslim Edildi')" class="bg-emerald-100 text-emerald-800 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">Biten</button>
     </div>
 
-    <div id="kartlar" class="px-4"></div>
+    <div id="kartlar" class="p-4 space-y-4 pb-24">
+        </div>
 
     <script>
-        var map = L.map('map').setView([40.839, 31.158], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-        var siparisler = [
-            { id: 1001, adres: "Atatürk Cd. No:45", lat: 40.8385, lng: 31.1620, tutar: 285, musteri: "Ahmet", telefon: "+905551234567", kurye: "K1", durum: "Hazırlanıyor" },
-            { id: 1002, adres: "İnönü Sk. 12", lat: 40.8420, lng: 31.1555, tutar: 420, musteri: "Ayşe", telefon: "+905559876543", kurye: "K2", durum: "Yolda" },
-            { id: 1003, adres: "Cumhuriyet Blv.", lat: 40.8350, lng: 31.1700, tutar: 180, musteri: "Mehmet", telefon: "+905551112233", kurye: "K3", durum: "Teslim Edildi" },
-            { id: 1004, adres: "19 Mayıs Sk.", lat: 40.8450, lng: 31.1480, tutar: 350, musteri: "Fatma", telefon: "+905551234567", kurye: "K1", durum: "Yolda" },
-            { id: 1005, adres: "Sahil Yolu 8", lat: 40.8300, lng: 31.1750, tutar: 510, musteri: "Ali", telefon: "+905559876543", kurye: "K2", durum: "Hazırlanıyor" }
+        const siparisler = [
+            { id: 1001, adres: "Atatürk Cd. No:45", lat: 40.8385, lng: 31.1620, tutar: 285, musteri: "Ahmet", telefon: "905551234567", kurye: "K1", durum: "Hazırlanıyor" },
+            { id: 1002, adres: "İnönü Sk. 12", lat: 40.8420, lng: 31.1555, tutar: 420, musteri: "Ayşe", telefon: "905559876543", kurye: "K2", durum: "Yolda" },
+            { id: 1003, adres: "Cumhuriyet Blv.", lat: 40.8350, lng: 31.1700, tutar: 180, musteri: "Mehmet", telefon: "905551112233", kurye: "K3", durum: "Teslim Edildi" },
+            { id: 1004, adres: "19 Mayıs Sk.", lat: 40.8450, lng: 31.1480, tutar: 350, musteri: "Fatma", telefon: "905551234567", kurye: "K1", durum: "Yolda" },
+            { id: 1005, adres: "Sahil Yolu 8", lat: 40.8300, lng: 31.1750, tutar: 510, musteri: "Ali", telefon: "905559876543", kurye: "K2", durum: "Hazırlanıyor" }
         ];
 
-        var total = 0;
-        var markers = [];
+        let map = L.map('map').setView([40.839, 31.158], 13);
+        L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
-        siparisler.forEach(s => {
-            total += s.tutar;
+        function renderCards(filter = 'Tümü') {
+            const container = document.getElementById('kartlar');
+            container.innerHTML = '';
+            let currentTotal = 0;
 
-            var statusClass = '';
-            if (s.durum === 'Hazırlanıyor') statusClass = 'hazir';
-            else if (s.durum === 'Yolda') statusClass = 'yolda';
-            else if (s.durum === 'Teslim Edildi') statusClass = 'teslim';
+            siparisler.forEach(s => {
+                if (filter !== 'Tümü' && s.durum !== filter) return;
+                
+                currentTotal += s.tutar;
+                const statusClass = s.durum === 'Hazırlanıyor' ? 'hazir' : (s.durum === 'Yolda' ? 'yolda' : 'teslim');
+                
+                const card = `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 card-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-black text-blue-900">#${s.id} - ${s.musteri}</h3>
+                                <p class="text-[11px] text-slate-500 font-bold tracking-tight uppercase">${s.adres}</p>
+                            </div>
+                            <span class="status-badge ${statusClass}">${s.durum}</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-lg font-black text-slate-700">${s.tutar} TL</span>
+                            <div class="flex gap-2">
+                                <a href="https://wa.me/${s.telefon}?text=${encodeURIComponent('Sipariş: '+s.id+'\nAdres: '+s.adres+'\nKonum: https://www.google.com/maps?q='+s.lat+','+s.lng)}" 
+                                   class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors">
+                                   WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
 
-            var card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="flex justify-between items-center mb-3">
-                    <p class="font-bold text-xl text-blue-900">Sipariş #${s.id}</p>
-                    <span class="status \( {statusClass}"> \){s.durum}</span>
-                </div>
-                <p class="text-sm mb-2 text-gray-700"><strong>Adres:</strong> ${s.adres}</p>
-                <p class="text-sm mb-2 text-gray-700"><strong>Müşteri:</strong> ${s.musteri}</p>
-                <p class="text-sm mb-4 text-gray-700"><strong>Kurye:</strong> \( {s.kurye} | <strong> \){s.tutar} TL</strong></p>
-                <a href="https://wa.me/\( {s.telefon}?text= \){encodeURIComponent(`Yeni Sipariş #${s.id}\\nMüşteri: ${s.musteri}\\nTutar: ${s.tutar} TL\\nAdres: \( {s.adres}\\nKonum: https://www.google.com/maps?q= \){s.lat},${s.lng}`)}" target="_blank" class="wa-btn ${s.durum === 'Teslim Edildi' ? 'disabled' : ''}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.93 14.42c-.38.38-1.12.74-1.65.82-.53.08-1.24.12-2.07-.09-.83-.21-1.53-.78-2.12-1.62-.59-.84-.98-1.91-1.08-2.76-.1-.85.09-1.61.57-2.14.48-.53 1.17-.82 1.92-.82h.24c.29 0 .57.06.83.18.26.12.49.3.68.52l.32.43c.19.25.27.56.21.87-.06.31-.25.58-.54.75l-.69.41c-.07.04-.1.13-.07.2l.29.78c.03.08.12.13.21.1l.78-.29c.07-.03.15 0 .2.07l.43.32c.22.17.4.4.52.66.12.26.18.54.18.83v.24c0 .75-.29 1.44-.82 1.92z"/></svg>
-                    WhatsApp Gönder
-                </a>
-            `;
-            document.getElementById('kartlar').appendChild(card);
+                // Marker Ekleme
+                let markerColor = s.durum === 'Teslim Edildi' ? '#10b981' : (s.durum === 'Yolda' ? '#3b82f6' : '#f59e0b');
+                L.circleMarker([s.lat, s.lng], {
+                    radius: 8,
+                    fillColor: markerColor,
+                    color: "#fff",
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map).bindPopup(`<b>${s.musteri}</b><br>${s.tutar} TL`);
+            });
 
-            var color = s.durum === 'Teslim Edildi' ? '#22c55e' : '#3b82f6';
-            var marker = L.marker([s.lat, s.lng], {
-                icon: L.divIcon({
-                    html: `<div style="background:${color};width:26px;height:26px;border-radius:50%;border:4px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.3);"></div>`,
-                    className: '',
-                    iconSize: [26, 26],
-                    iconAnchor: [13, 13]
-                })
-            }).addTo(map).bindPopup(`<b>Sipariş #\( {s.id}</b><br> \){s.adres}<br>Müşteri: ${s.musteri}<br>Tutar: ${s.tutar} TL<br>Kurye: ${s.kurye}<br>Durum: ${s.durum}`);
-            markers.push(marker);
-        });
+            document.getElementById('ciro').innerText = currentTotal + ' TL';
+        }
 
-        document.getElementById('ciro').innerText = total + ' TL';
-
-        if (markers.length) map.fitBounds(L.featureGroup(markers).getBounds(), {padding: [50, 50]});
+        renderCards();
     </script>
 </body>
 </html>
